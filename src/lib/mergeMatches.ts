@@ -40,9 +40,43 @@ export function isPlaceholderTeam(name: string | undefined): boolean {
 
 type Indexed = { match: Match; index: number };
 
+const TEAM_ALIASES: ReadonlyMap<string, string> = new Map([
+  ["cape verde islands", "cape verde"],
+  ["congo dr", "dr congo"],
+  ["cote d ivoire", "ivory coast"],
+  ["cote d'ivoire", "ivory coast"],
+  ["côte d'ivoire", "ivory coast"],
+  ["united states", "usa"],
+  ["united states of america", "usa"],
+]);
+
+function normalizedTeamKey(name: string): string {
+  const base = name
+    .trim()
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/&/g, "and")
+    .replace(/[^\p{Letter}\p{Number}]+/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return TEAM_ALIASES.get(base) ?? base;
+}
+
+function teamSlotKey(m: Match): string | undefined {
+  if (isPlaceholderTeam(m.homeTeam) || isPlaceholderTeam(m.awayTeam)) return undefined;
+  const kickoff = new Date(m.kickoffUtc).toISOString();
+  return [
+    kickoff,
+    normalizedTeamKey(m.homeTeam),
+    normalizedTeamKey(m.awayTeam),
+  ].join("|");
+}
+
 function buildLiveIndex(live: Match[]) {
   const byNumber = new Map<number, Match>();
   const byVenueDate = new Map<string, Indexed[]>();
+  const byTeamSlot = new Map<string, Match>();
   live.forEach((m, index) => {
     if (typeof m.matchNumber === "number") byNumber.set(m.matchNumber, m);
     if (m.stadiumId && m.stadiumId !== "unknown") {
@@ -51,8 +85,10 @@ function buildLiveIndex(live: Match[]) {
       if (arr) arr.push({ match: m, index });
       else byVenueDate.set(key, [{ match: m, index }]);
     }
+    const teamKey = teamSlotKey(m);
+    if (teamKey && (!m.stadiumId || m.stadiumId === "unknown")) byTeamSlot.set(teamKey, m);
   });
-  return { byNumber, byVenueDate };
+  return { byNumber, byVenueDate, byTeamSlot };
 }
 
 function findLiveMatch(
@@ -68,19 +104,27 @@ function findLiveMatch(
   // 2. Backstop: same stadium + same UTC date + closest kickoff within tolerance.
   const key = `${staticMatch.stadiumId}|${utcDateKey(staticMatch.kickoffUtc)}`;
   const candidates = index.byVenueDate.get(key);
-  if (!candidates || candidates.length === 0) return undefined;
-
-  const target = new Date(staticMatch.kickoffUtc).getTime();
-  let best: Match | undefined;
-  let bestDelta = Infinity;
-  for (const { match } of candidates) {
-    const delta = Math.abs(new Date(match.kickoffUtc).getTime() - target);
-    if (delta < bestDelta && delta <= SLOT_TOLERANCE_MS) {
-      best = match;
-      bestDelta = delta;
+  if (candidates && candidates.length > 0) {
+    const target = new Date(staticMatch.kickoffUtc).getTime();
+    let best: Match | undefined;
+    let bestDelta = Infinity;
+    for (const { match } of candidates) {
+      const delta = Math.abs(new Date(match.kickoffUtc).getTime() - target);
+      if (delta < bestDelta && delta <= SLOT_TOLERANCE_MS) {
+        best = match;
+        bestDelta = delta;
+      }
     }
+    if (best) return best;
   }
-  return best;
+
+  // 3. Last-resort group-stage fallback: some providers publish current scores
+  // without a venue or FIFA match number. Only join when kickoff and both real
+  // team names match after provider-name normalization.
+  const teamKey = teamSlotKey(staticMatch);
+  if (teamKey) return index.byTeamSlot.get(teamKey);
+
+  return undefined;
 }
 
 const REAL_STATUSES: ReadonlySet<MatchStatus> = new Set<MatchStatus>([

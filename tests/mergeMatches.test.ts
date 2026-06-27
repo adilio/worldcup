@@ -68,6 +68,72 @@ describe("mergeMatches — join keys", () => {
     const [out] = mergeMatches(spine, live);
     expect(out.status).toBe("scheduled");
   });
+
+  it("joins by kickoff and real team names when the live provider has no venue", () => {
+    const spine = [
+      m({
+        id: "static-70",
+        matchNumber: 70,
+        kickoffUtc: "2026-06-27T23:30:00.000Z",
+        homeTeam: "DR Congo",
+        awayTeam: "Uzbekistan",
+      }),
+    ];
+    const live = [
+      m({
+        id: "live-70",
+        matchNumber: undefined,
+        providerId: "537408",
+        stadiumId: "unknown",
+        stadium: "",
+        city: "",
+        kickoffUtc: "2026-06-27T23:30:00.000Z",
+        homeTeam: "Congo DR",
+        awayTeam: "Uzbekistan",
+        status: "live",
+        homeScore: 0,
+        awayScore: 1,
+      }),
+    ];
+
+    const [out] = mergeMatches(spine, live);
+
+    expect(out.status).toBe("live");
+    expect(out.homeScore).toBe(0);
+    expect(out.awayScore).toBe(1);
+    expect(out.providerId).toBe("537408");
+  });
+
+  it("does not team-name join unresolved static placeholders", () => {
+    const spine = [
+      m({
+        id: "static-ko",
+        matchNumber: 90,
+        stage: "round_of_32",
+        kickoffUtc: "2026-07-03T23:30:00.000Z",
+        homeTeam: "1A",
+        awayTeam: "2B",
+      }),
+    ];
+    const live = [
+      m({
+        id: "live-ko",
+        matchNumber: undefined,
+        stadiumId: "unknown",
+        kickoffUtc: "2026-07-03T23:30:00.000Z",
+        homeTeam: "Canada",
+        awayTeam: "Brazil",
+        status: "finished",
+        homeScore: 2,
+        awayScore: 1,
+      }),
+    ];
+
+    const [out] = mergeMatches(spine, live);
+
+    expect(out.status).toBe("scheduled");
+    expect(out.homeScore).toBeUndefined();
+  });
 });
 
 describe("mergeMatches — spine is the source of truth", () => {
@@ -239,7 +305,7 @@ describe("football-data.org adapter — status mapping", () => {
         {
           id: 1,
           utcDate: "2026-06-13T22:00:00Z",
-          status: "IN_PLAY",
+          status: "LIVE",
           stage: "GROUP_STAGE",
           group: "GROUP_B",
           homeTeam: { name: "Canada" },

@@ -40,6 +40,7 @@ function mapStatus(s: string | undefined): MatchStatus {
     case "TIMED":
       return "scheduled";
     case "IN_PLAY":
+    case "LIVE":
       return "live";
     case "PAUSED":
       return "halftime";
