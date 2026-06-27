@@ -473,6 +473,8 @@ Only configure the providers actively in use. Do not wire API-Football until tes
 
 Living status log, updated as the build proceeds.
 
+**Current status (2026-06-27):** Phases 1–3 complete; Phase 4 in progress. 21 tests passing, `tsc` clean, `vite build` green (≈10.7 kB gzip JS). All four data layers verified end-to-end. Committed and pushed to `main`. Remaining: optional Phase 4 items, deploy (Netlify env + domain), and issue #30 (verify football-data.org `venue` field with a real token).
+
 ### Phase 1: Static App — ✅ Complete
 
 * Scaffolded Vite + Preact + TypeScript (project config, tsconfig project refs, `.gitignore`, `index.html`).
@@ -494,7 +496,7 @@ Note: share + calendar buttons and no-spoiler toggle (Phase 3 items) were folded
 * openfootball adapter (`src/lib/openfootball.ts`): shared by the seed step and the live mirror (same schema), converts offset times to ISO, carries scorers.
 * Merge logic (`src/lib/mergeMatches.ts`): spine is source of truth; live data only decorates (status/score/scorers/lastUpdated/providerId). Joins on FIFA `matchNumber`, backstop on stadiumId + UTC date + closest kickoff within 3h. Never takes venue from the live provider. Resolves placeholder team names ("Winner Group A") only when the live side has a real name.
 * CDN cache headers adapt to state: 25s live, 300s match-day, 1800s idle — decouples client poll rate from the 10/min upstream cap.
-* Tests: 17 passing (`mergeMatches`, join keys, spine-as-truth, `isPlaceholderTeam`, venue-normalization map covering all 16 stadiums, football-data adapter status/venue mapping).
+* Tests: 21 passing across the suite (`mergeMatches` join keys, spine-as-truth, `isPlaceholderTeam`, venue-normalization map covering all 16 stadiums, football-data adapter status/venue/penalties mapping, team filter).
 * Verified offline: degraded path returns 200, 104 matches, 7 BC Place, correct cache headers; openfootball mirror path merges 66 finished results with scores. API key stays server-side (`process.env`, never shipped to the browser).
 
 ### Phase 3: Usability Features — ✅ Complete
@@ -508,7 +510,7 @@ Most Phase 3 items were folded into Phase 1 (no-spoiler toggle, native share, ca
 
 Added this pass (knockout-readiness):
 
-* Penalty shootout display — `homePens`/`awayPens` on the `Match` type, parsed from football-data.org (`score.penalties`) and openfootball (`score.p`), carried through `mergeMatches`, rendered as `(4–3 pens)` on the card (hidden in no-spoiler mode). 2 new tests (19 total).
+* Penalty shootout display — `homePens`/`awayPens` on the `Match` type, parsed from football-data.org (`score.penalties`) and openfootball (`score.p`), carried through `mergeMatches`, rendered as `(4–3 pens)` on the card (hidden in no-spoiler mode). 2 new tests.
 * Hero heading polish — "Live now" / "Next up" when All stadiums is selected (was the awkward "Live at All stadiums").
 
 ### Phase 4: Optional Enhancements — 🚧 In progress
@@ -516,7 +518,9 @@ Added this pass (knockout-readiness):
 Knockout/tournament-relevant items pulled forward:
 
 * Penalty shootout display ✅ (see Phase 3 pass).
-* Canada quick filter ✅ — "🇨🇦 Canada only" chip in the controls row; composes on top of the stadium filter (stadium → Canada → status tab) so a user can follow Canada across every stadium. Persisted in localStorage (`4dl-wc2026-canada-only`). Verified against real data: Canada has 4 matches across 3 stadiums (2 at BC Place). 2 new tests (21 total).
+* Canada quick filter ✅ — "🇨🇦 Canada only" chip in the controls row; composes on top of the stadium filter (stadium → Canada → status tab) so a user can follow Canada across every stadium. Persisted in localStorage (`4dl-wc2026-canada-only`). Verified against real data: Canada has 4 matches across 3 stadiums (2 at BC Place). 2 new tests (suite now 21 total).
+
+Repo-readiness (this pass): real `README.md` (was a placeholder), `*.tsbuildinfo` added to `.gitignore`.
 
 ### Phase 1: Static App
 
@@ -588,11 +592,11 @@ Exit criteria:
 
 Goal: add useful features without bloat.
 
-1. Canada quick filter.
+1. Canada quick filter. ✅
 2. Favourite team filter.
 3. Group standings.
-4. Scorers, if the provider supports them on free.
-5. Penalties display.
+4. Scorers, if the provider supports them on free. ✅ (shown on cards when present)
+5. Penalties display. ✅
 6. Host city resource links.
 7. Transit links.
 8. Stadium policy links.
