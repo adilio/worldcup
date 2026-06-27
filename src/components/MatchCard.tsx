@@ -10,6 +10,16 @@ type Props = {
   hero?: boolean;
 };
 
+function teamMark(team: string): string {
+  return team
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+}
+
 export function MatchCard({ match, noSpoiler, hero = false }: Props) {
   const live = isLive(match.status);
   const showScore = hasScore(match) && !noSpoiler;
@@ -28,36 +38,50 @@ export function MatchCard({ match, noSpoiler, hero = false }: Props) {
   }
 
   const statusText = noSpoiler && match.status === "finished" ? "" : statusLabel(match);
+  const stageText = stageLabel(match);
 
   return (
     <article class={`match-card${hero ? " match-card--hero" : ""}${live ? " match-card--live" : ""}`}>
-      <div class="match-card__teams">
-        <span class="match-card__team">{match.homeTeam}</span>
-        <span class="match-card__vs">vs</span>
-        <span class="match-card__team">{match.awayTeam}</span>
+      <div class="match-card__topline">
+        <span>{stageText}</span>
+        <span class="match-card__topline-dot">·</span>
+        <span>{dateHeading(match.kickoffUtc)}</span>
+      </div>
+
+      <div class="match-card__scoreboard">
+        <div class="match-card__side">
+          <span class="team-mark">{teamMark(match.homeTeam)}</span>
+          <span class="match-card__team">{match.homeTeam}</span>
+        </div>
+
+        <div class="match-card__middle">
+          {showScore ? (
+            <span class="match-card__score match-card__score--has">{scoreLine}</span>
+          ) : (
+            <>
+              <span class="match-card__kickoff">{scoreLine}</span>
+              <span class="match-card__vs">vs</span>
+            </>
+          )}
+        </div>
+
+        <div class="match-card__side match-card__side--away">
+          <span class="match-card__team">{match.awayTeam}</span>
+          <span class="team-mark">{teamMark(match.awayTeam)}</span>
+        </div>
       </div>
 
       <div class="match-card__statusline">
         {live && <span class="badge badge--live">Live</span>}
         {!live && statusText && <span class="badge">{statusText}</span>}
-        <span class={`match-card__score${showScore ? " match-card__score--has" : ""}`}>
-          {scoreLine}
-        </span>
+        <span>{times.local}</span>
+        {times.venue && <span class="match-card__venuetime">venue {times.venue}</span>}
       </div>
-
-      <div class="match-card__stage">{stageLabel(match)}</div>
 
       <div class="match-card__venue">
         <span class="match-card__city">{match.city}</span>
         <span class="match-card__sep">·</span>
         <span class="match-card__stadium">{match.stadium}</span>
-      </div>
-
-      <div class="match-card__time">
-        <span class="match-card__date">{dateHeading(match.kickoffUtc)}</span>
-        <span class="match-card__sep">·</span>
-        <span>{times.local}</span>
-        {times.venue && <span class="match-card__venuetime">venue {times.venue}</span>}
       </div>
 
       {match.scorers && match.scorers.length > 0 && !noSpoiler && (
