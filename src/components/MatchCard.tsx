@@ -27,7 +27,7 @@ const TEAM_FLAGS: Record<string, string> = {
   "DR Congo": "🇨🇩",
   Ecuador: "🇪🇨",
   Egypt: "🇪🇬",
-  England: "🏴",
+  England: "🇬🇧",
   France: "🇫🇷",
   Germany: "🇩🇪",
   Ghana: "🇬🇭",

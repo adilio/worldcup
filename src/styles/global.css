@@ -66,18 +66,12 @@ button {
 }
 
 .app-header__mark {
-  display: grid;
   width: 46px;
   height: 46px;
   flex: 0 0 auto;
-  place-items: center;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #fdd663, #81c995 48%, #8ab4f8);
-  color: #202124;
-  font-size: 0.88rem;
-  font-weight: 800;
-  letter-spacing: 0;
+  border-radius: 999px;
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+  object-fit: contain;
 }
 
 .app-kicker {
@@ -381,9 +375,11 @@ button {
 }
 
 .team-mark--flag {
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.92);
-  font-size: 1.08rem;
+  width: 38px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+  font-size: 1.6rem;
   font-weight: 400;
 }
 
@@ -403,7 +399,7 @@ button {
   display: grid;
   min-width: 0;
   justify-items: start;
-  padding-left: 41px;
+  padding-left: 45px;
   color: var(--text);
 }
 

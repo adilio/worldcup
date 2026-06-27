@@ -4,8 +4,8 @@
   "description": "A simple stadium-first World Cup 2026 match tracker.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0b1f3a",
-  "theme_color": "#0b1f3a",
+  "background_color": "#202124",
+  "theme_color": "#202124",
   "icons": [
     {
       "src": "/app-icon.svg",
