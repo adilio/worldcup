@@ -1,0 +1,9 @@
+node_modules
+dist
+.netlify
+*.local
+.env
+.DS_Store
+.vite
+coverage
+*.tsbuildinfo

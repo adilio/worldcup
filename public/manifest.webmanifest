@@ -1,0 +1,17 @@
+{
+  "name": "4dl World Cup 2026",
+  "short_name": "4dl WC2026",
+  "description": "A simple stadium-first World Cup 2026 match tracker.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b1f3a",
+  "theme_color": "#0b1f3a",
+  "icons": [
+    {
+      "src": "/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

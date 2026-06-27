@@ -469,7 +469,54 @@ ENABLE_API_FOOTBALL=false
 
 Only configure the providers actively in use. Do not wire API-Football until testing proves football-data.org is not enough.
 
-## Build Phases
+## Build Progress
+
+Living status log, updated as the build proceeds.
+
+### Phase 1: Static App — ✅ Complete
+
+* Scaffolded Vite + Preact + TypeScript (project config, tsconfig project refs, `.gitignore`, `index.html`).
+* Added `netlify.toml` (build, functions dir, dev proxy).
+* Added stadium metadata (`src/data/stadiums.ts`) and the canonical venue-normalization map + helpers (`src/lib/stadiums.ts`).
+* Built the seed step (`scripts/seed.mjs`, `npm run seed`): fetches openfootball, converts `13:00 UTC-6` → ISO `kickoffUtc`, assigns `matchNumber` (group 1–72 chronological, knockout uses openfootball `num` 73–104), normalizes every venue, writes `public/data/world-cup-2026-static.json`. Verified: 104 matches, all 16 venues mapped, BC Place = 7.
+* Seed and the Netlify function share one venue map — Node 23.6+ strips TS types, so `seed.mjs` imports `src/lib/stadiums.ts` directly (no duplication).
+* Built app shell + components: `AppHeader`, `StadiumSelect` (BC Place default, localStorage persistence, All-stadiums option), `MatchCard` (dual local/venue time, status badges, stage/group, city + stadium), `MatchList` (grouped by date), `EmptyState`, `DataStatus`.
+* Added libs: `types`, `storage`, `formatDate` (Intl-only), `matchStatus`, `matches` (filter/group/hero/today), `apiClient` (function → static fallback), `calendar` (.ics), `share`.
+* Added All / Upcoming / Live / Results filters, hero card (live → next → last result), adaptive polling (30s live / 5m matchday / 30m idle).
+* Verified: `npm run build` passes (≈10.4 kB gzip JS); preview serves; static JSON loads (104 matches); manifest 200.
+
+Note: share + calendar buttons and no-spoiler toggle (Phase 3 items) were folded into the cards/app during Phase 1 since they were cheap and self-contained.
+
+### Phase 2: Live Data Function — ✅ Complete
+
+* Built `netlify/functions/matches.mts`: single endpoint, tries football-data.org → openfootball live mirror → static spine, returns the full envelope (`app`, `defaultStadium`, `source`, `fallbackUsed`, `lastUpdated`, `matches`).
+* football-data.org adapter (`src/lib/footballData.ts`): WC competition code, maps provider statuses (IN_PLAY→live, PAUSED→halftime, FINISHED→finished, …) and stages (LAST_16→round_of_16, FINAL→final, …), normalizes venue through the canonical map, degrades to `stadiumId: "unknown"` when venue is null (the pre-launch unknown).
+* openfootball adapter (`src/lib/openfootball.ts`): shared by the seed step and the live mirror (same schema), converts offset times to ISO, carries scorers.
+* Merge logic (`src/lib/mergeMatches.ts`): spine is source of truth; live data only decorates (status/score/scorers/lastUpdated/providerId). Joins on FIFA `matchNumber`, backstop on stadiumId + UTC date + closest kickoff within 3h. Never takes venue from the live provider. Resolves placeholder team names ("Winner Group A") only when the live side has a real name.
+* CDN cache headers adapt to state: 25s live, 300s match-day, 1800s idle — decouples client poll rate from the 10/min upstream cap.
+* Tests: 17 passing (`mergeMatches`, join keys, spine-as-truth, `isPlaceholderTeam`, venue-normalization map covering all 16 stadiums, football-data adapter status/venue mapping).
+* Verified offline: degraded path returns 200, 104 matches, 7 BC Place, correct cache headers; openfootball mirror path merges 66 finished results with scores. API key stays server-side (`process.env`, never shipped to the browser).
+
+### Phase 3: Usability Features — ✅ Complete
+
+Most Phase 3 items were folded into Phase 1 (no-spoiler toggle, native share, calendar `.ics`). Confirmed the rest:
+
+* Loading / error / empty states in `app.tsx` (initial spinner, per-filter and per-stadium empty messages).
+* `DataStatus` banner matches the plan spec: "Live score temporarily unavailable. Showing schedule data." on fallback, source + last-checked line, free-data lag note.
+* Responsive mobile-first CSS (`global.css`): 640px max width, safe-area insets, sticky date headings, overflow-scroll filter tabs, pulsing live badge, one breakpoint at 560px.
+* PWA: `manifest.webmanifest` linked in `index.html`, standalone display, theme color, maskable icon.
+
+Added this pass (knockout-readiness):
+
+* Penalty shootout display — `homePens`/`awayPens` on the `Match` type, parsed from football-data.org (`score.penalties`) and openfootball (`score.p`), carried through `mergeMatches`, rendered as `(4–3 pens)` on the card (hidden in no-spoiler mode). 2 new tests (19 total).
+* Hero heading polish — "Live now" / "Next up" when All stadiums is selected (was the awkward "Live at All stadiums").
+
+### Phase 4: Optional Enhancements — 🚧 In progress
+
+Knockout/tournament-relevant items pulled forward:
+
+* Penalty shootout display ✅ (see Phase 3 pass).
+* Canada quick filter ✅ — "🇨🇦 Canada only" chip in the controls row; composes on top of the stadium filter (stadium → Canada → status tab) so a user can follow Canada across every stadium. Persisted in localStorage (`4dl-wc2026-canada-only`). Verified against real data: Canada has 4 matches across 3 stadiums (2 at BC Place). 2 new tests (21 total).
 
 ### Phase 1: Static App
 

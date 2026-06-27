@@ -1,0 +1,261 @@
+import { describe, it, expect } from "vitest";
+import type { Match } from "../src/lib/types.ts";
+import { mergeMatches, isPlaceholderTeam } from "../src/lib/mergeMatches.ts";
+import { normalizeVenue, STADIUMS } from "../src/lib/stadiums.ts";
+import { normalizeFootballData } from "../src/lib/footballData.ts";
+import { isTeamPlaying, filterByTeam } from "../src/lib/matches.ts";
+
+function m(overrides: Partial<Match> = {}): Match {
+  return {
+    id: "wc2026-1",
+    matchNumber: 1,
+    stage: "group",
+    group: "A",
+    homeTeam: "Canada",
+    awayTeam: "Croatia",
+    status: "scheduled",
+    kickoffUtc: "2026-06-13T22:00:00.000Z",
+    stadium: "BC Place",
+    stadiumId: "bc-place",
+    city: "Vancouver",
+    country: "Canada",
+    ...overrides,
+  };
+}
+
+describe("mergeMatches — join keys", () => {
+  it("merges live score and status onto the spine by matchNumber", () => {
+    const spine = [m({ matchNumber: 73, stage: "round_of_32", homeTeam: "Canada", awayTeam: "Mexico" })];
+    const live = [m({ matchNumber: 73, status: "live", homeScore: 1, awayScore: 0, providerId: "999" })];
+    const [out] = mergeMatches(spine, live);
+    expect(out.status).toBe("live");
+    expect(out.homeScore).toBe(1);
+    expect(out.awayScore).toBe(0);
+    expect(out.providerId).toBe("999");
+  });
+
+  it("falls back to venue+date+slot when matchNumber is missing on the live side", () => {
+    // Group matches: live providers don't expose a FIFA number, so the backstop
+    // must join on stadiumId + UTC date + closest kickoff.
+    const spine = [m({ matchNumber: 5, kickoffUtc: "2026-06-13T22:00:00.000Z" })];
+    const live = [
+      m({
+        matchNumber: undefined,
+        status: "finished",
+        homeScore: 2,
+        awayScore: 1,
+        kickoffUtc: "2026-06-13T22:05:00.000Z", // slightly off, same slot
+      }),
+    ];
+    const [out] = mergeMatches(spine, live);
+    expect(out.status).toBe("finished");
+    expect(out.homeScore).toBe(2);
+  });
+
+  it("does NOT join when the venue differs, even on the same date", () => {
+    const spine = [m({ matchNumber: 5, stadiumId: "bc-place" })];
+    const live = [m({ matchNumber: undefined, stadiumId: "lumen", status: "finished", homeScore: 9 })];
+    const [out] = mergeMatches(spine, live);
+    expect(out.status).toBe("scheduled");
+    expect(out.homeScore).toBeUndefined();
+  });
+
+  it("does NOT join when kickoff is outside the slot tolerance", () => {
+    const spine = [m({ matchNumber: 5, kickoffUtc: "2026-06-13T18:00:00.000Z" })];
+    const live = [
+      m({ matchNumber: undefined, kickoffUtc: "2026-06-13T23:30:00.000Z", status: "finished", homeScore: 3 }),
+    ];
+    const [out] = mergeMatches(spine, live);
+    expect(out.status).toBe("scheduled");
+  });
+});
+
+describe("mergeMatches — spine is the source of truth", () => {
+  it("never overwrites venue/stadium from the live provider", () => {
+    const spine = [m({ stadium: "BC Place", stadiumId: "bc-place", city: "Vancouver" })];
+    const live = [m({ stadium: "WRONG", stadiumId: "lumen", city: "Seattle", status: "live" })];
+    const [out] = mergeMatches(spine, live);
+    expect(out.stadiumId).toBe("bc-place");
+    expect(out.stadium).toBe("BC Place");
+    expect(out.city).toBe("Vancouver");
+  });
+
+  it("keeps BC Place matches in the result even with no live data", () => {
+    const spine = [m({ stadiumId: "bc-place" }), m({ id: "x", matchNumber: 2, stadiumId: "lumen" })];
+    const out = mergeMatches(spine, []);
+    expect(out).toHaveLength(2);
+    expect(out.find((x) => x.stadiumId === "bc-place")).toBeTruthy();
+  });
+
+  it("resolves a placeholder team name from live, but never the reverse", () => {
+    const spine = [
+      m({ matchNumber: 73, stage: "round_of_32", homeTeam: "Winner Group A", awayTeam: "Canada" }),
+    ];
+    const live = [m({ matchNumber: 73, homeTeam: "Brazil", awayTeam: "TBD", status: "scheduled" })];
+    const [out] = mergeMatches(spine, live);
+    expect(out.homeTeam).toBe("Brazil"); // placeholder resolved
+    expect(out.awayTeam).toBe("Canada"); // real name not clobbered by live placeholder
+  });
+
+  it("returns a copy and does not mutate the spine", () => {
+    const spine = [m({ matchNumber: 73 })];
+    const live = [m({ matchNumber: 73, status: "live", homeScore: 1, awayScore: 1 })];
+    mergeMatches(spine, live);
+    expect(spine[0]!.status).toBe("scheduled");
+    expect(spine[0]!.homeScore).toBeUndefined();
+  });
+
+  it("carries a penalty shootout result through from the live provider", () => {
+    const spine = [m({ matchNumber: 100, stage: "round_of_16", homeTeam: "Canada", awayTeam: "Brazil" })];
+    const live = [
+      m({ matchNumber: 100, status: "finished", homeScore: 1, awayScore: 1, homePens: 4, awayPens: 3 }),
+    ];
+    const [out] = mergeMatches(spine, live);
+    expect(out.homeScore).toBe(1);
+    expect(out.awayScore).toBe(1);
+    expect(out.homePens).toBe(4);
+    expect(out.awayPens).toBe(3);
+  });
+});
+
+describe("isPlaceholderTeam", () => {
+  it("flags unresolved placeholders", () => {
+    for (const p of ["Winner Group A", "Runner-up B", "1A", "2C", "W73", "TBD", "Loser 101", "", undefined]) {
+      expect(isPlaceholderTeam(p)).toBe(true);
+    }
+  });
+  it("accepts real team names", () => {
+    for (const t of ["Canada", "Mexico", "South Africa", "Côte d'Ivoire", "United States"]) {
+      expect(isPlaceholderTeam(t)).toBe(false);
+    }
+  });
+});
+
+describe("team filter", () => {
+  it("matches either side, case-insensitively", () => {
+    const match = m({ homeTeam: "Canada", awayTeam: "Croatia" });
+    expect(isTeamPlaying(match, "Canada")).toBe(true);
+    expect(isTeamPlaying(match, "croatia")).toBe(true);
+    expect(isTeamPlaying(match, "Mexico")).toBe(false);
+    expect(isTeamPlaying(match, "")).toBe(false);
+  });
+
+  it("filters a list down to the team's matches", () => {
+    const matches = [
+      m({ id: "a", matchNumber: 1, homeTeam: "Canada", awayTeam: "Croatia" }),
+      m({ id: "b", matchNumber: 2, homeTeam: "Brazil", awayTeam: "Mexico" }),
+    ];
+    expect(filterByTeam(matches, "Canada")).toHaveLength(1);
+    // Mexico is the away side in match b.
+    expect(filterByTeam(matches, "Mexico")).toHaveLength(1);
+    expect(filterByTeam(matches, "")).toHaveLength(2);
+  });
+});
+
+describe("venue normalization map", () => {
+  const openfootballGrounds = [
+    ["Mexico City", "azteca"],
+    ["Guadalajara (Zapopan)", "akron"],
+    ["Atlanta", "mercedes-benz"],
+    ["Monterrey (Guadalupe)", "bbva"],
+    ["Toronto", "bmo-field"],
+    ["San Francisco Bay Area (Santa Clara)", "levis"],
+    ["Los Angeles (Inglewood)", "sofi"],
+    ["Vancouver", "bc-place"],
+    ["Seattle", "lumen"],
+    ["New York/New Jersey (East Rutherford)", "metlife"],
+    ["Boston (Foxborough)", "gillette"],
+    ["Philadelphia", "lincoln-financial"],
+    ["Miami (Miami Gardens)", "hard-rock"],
+    ["Houston", "nrg"],
+    ["Kansas City", "arrowhead"],
+    ["Dallas (Arlington)", "att"],
+  ] as const;
+
+  it("maps every openfootball ground string to the right stadiumId", () => {
+    for (const [raw, id] of openfootballGrounds) {
+      expect(normalizeVenue(raw)).toBe(id);
+    }
+  });
+
+  it("maps FIFA / venue-name forms, including BC Place variants", () => {
+    expect(normalizeVenue("BC Place")).toBe("bc-place");
+    expect(normalizeVenue("BC Place Vancouver")).toBe("bc-place");
+    expect(normalizeVenue("Vancouver Stadium")).toBe("bc-place");
+    expect(normalizeVenue("Estadio Azteca")).toBe("azteca");
+    expect(normalizeVenue("Levi's Stadium")).toBe("levis");
+  });
+
+  it("is case- and whitespace-insensitive", () => {
+    expect(normalizeVenue("  vAnCoUvEr ")).toBe("bc-place");
+  });
+
+  it("returns undefined for an unknown venue", () => {
+    expect(normalizeVenue("Wembley")).toBeUndefined();
+    expect(normalizeVenue("")).toBeUndefined();
+    expect(normalizeVenue(null)).toBeUndefined();
+  });
+
+  it("covers every stadium id at least once", () => {
+    const reached = new Set<string>(openfootballGrounds.map(([, id]) => id));
+    for (const s of STADIUMS) expect(reached.has(s.id)).toBe(true);
+  });
+});
+
+describe("football-data.org adapter — status mapping", () => {
+  it("maps provider statuses and resolves venue to canonical stadiumId", () => {
+    const out = normalizeFootballData({
+      matches: [
+        {
+          id: 1,
+          utcDate: "2026-06-13T22:00:00Z",
+          status: "IN_PLAY",
+          stage: "GROUP_STAGE",
+          group: "GROUP_B",
+          homeTeam: { name: "Canada" },
+          awayTeam: { name: "Croatia" },
+          score: { fullTime: { home: 1, away: 0 } },
+          venue: "BC Place",
+        },
+        { id: 2, utcDate: "2026-07-19T19:00:00Z", status: "FINISHED", stage: "FINAL", venue: "MetLife Stadium" },
+      ],
+    });
+    expect(out[0]!.status).toBe("live");
+    expect(out[0]!.stadiumId).toBe("bc-place");
+    expect(out[0]!.group).toBe("B");
+    expect(out[0]!.homeScore).toBe(1);
+    expect(out[1]!.status).toBe("finished");
+    expect(out[1]!.stage).toBe("final");
+    expect(out[1]!.stadiumId).toBe("metlife");
+  });
+
+  it("degrades gracefully when venue is null (the pre-launch unknown)", () => {
+    const out = normalizeFootballData({
+      matches: [{ id: 3, utcDate: "2026-06-13T22:00:00Z", status: "TIMED", venue: null }],
+    });
+    expect(out[0]!.stadiumId).toBe("unknown");
+    expect(out[0]!.status).toBe("scheduled");
+  });
+
+  it("reads penalty shootout scores and resolves venue", () => {
+    const out = normalizeFootballData({
+      matches: [
+        {
+          id: 4,
+          utcDate: "2026-07-03T22:00:00Z",
+          status: "FINISHED",
+          stage: "ROUND_OF_16",
+          homeTeam: { name: "Canada" },
+          awayTeam: { name: "Brazil" },
+          score: { fullTime: { home: 1, away: 1 }, penalties: { home: 4, away: 3 } },
+          venue: "AT&T Stadium",
+        },
+      ],
+    });
+    expect(out[0]!.homeScore).toBe(1);
+    expect(out[0]!.awayScore).toBe(1);
+    expect(out[0]!.homePens).toBe(4);
+    expect(out[0]!.awayPens).toBe(3);
+    expect(out[0]!.stadiumId).toBe("att");
+  });
+});

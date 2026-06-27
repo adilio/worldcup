@@ -1,0 +1,348 @@
+:root {
+  --bg: #0b1f3a;
+  --bg-elev: #122a4d;
+  --bg-card: #15315a;
+  --border: #234269;
+  --text: #eaf1fb;
+  --text-dim: #9fb4d4;
+  --accent: #e63946;
+  --accent-2: #2a9d8f;
+  --live: #ff4d5e;
+  --radius: 14px;
+  --maxw: 640px;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+}
+
+.app {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 16px 16px 48px;
+}
+
+/* Header */
+.app-header {
+  text-align: center;
+  padding: 12px 0 8px;
+}
+.app-title {
+  margin: 0;
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+}
+.app-domain {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+/* Controls */
+.app__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin: 16px 0;
+}
+.stadium-select {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 220px;
+}
+.stadium-select__label {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.stadium-select__input {
+  appearance: none;
+  background: var(--bg-elev);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  font-size: 1rem;
+  width: 100%;
+}
+.spoiler-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.app__toggles {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-bottom: 8px;
+}
+.chip {
+  background: var(--bg-elev);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.chip--active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+.spoiler-toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+/* Hero */
+.hero {
+  margin: 8px 0 20px;
+}
+.hero__heading {
+  font-size: 0.95rem;
+  color: var(--text-dim);
+  margin: 0 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Filters */
+.filters {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0 16px;
+  overflow-x: auto;
+}
+.filters__tab {
+  flex: 1;
+  background: var(--bg-elev);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 9px 14px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.filters__tab--active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Match list */
+.match-list__group {
+  margin-bottom: 22px;
+}
+.match-list__date {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 10px;
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  padding: 6px 0;
+  z-index: 1;
+}
+.match-list__cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Match card */
+.match-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+.match-card--hero {
+  background: linear-gradient(135deg, var(--bg-card), var(--bg-elev));
+  border-color: var(--accent-2);
+  padding: 18px;
+}
+.match-card--live {
+  border-color: var(--live);
+  box-shadow: 0 0 0 1px var(--live) inset;
+}
+.match-card__teams {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+.match-card--hero .match-card__teams {
+  font-size: 1.35rem;
+}
+.match-card__vs {
+  color: var(--text-dim);
+  font-weight: 400;
+  font-size: 0.9rem;
+}
+.match-card__statusline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0;
+}
+.match-card__score {
+  font-size: 1rem;
+  color: var(--text-dim);
+}
+.match-card__score--has {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.match-card__stage,
+.match-card__venue,
+.match-card__time {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  margin-top: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: baseline;
+}
+.match-card__city {
+  color: var(--text);
+  font-weight: 600;
+}
+.match-card__sep {
+  opacity: 0.5;
+}
+.match-card__venuetime {
+  color: var(--text-dim);
+  font-size: 0.82rem;
+}
+.match-card__scorers {
+  margin-top: 8px;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+.match-card__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.card-btn {
+  background: var(--bg-elev);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+.card-btn:active {
+  transform: scale(0.97);
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--bg-elev);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+.badge--live {
+  background: var(--live);
+  color: #fff;
+  border-color: var(--live);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Empty / loading */
+.empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text-dim);
+}
+.empty-state__title {
+  font-size: 1.05rem;
+  margin: 0 0 6px;
+  color: var(--text);
+}
+.empty-state__message {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+/* Data status footer */
+.data-status {
+  margin-top: 28px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  text-align: center;
+}
+.data-status__warning {
+  color: #ffd166;
+  margin: 0 0 8px;
+}
+.data-status__line {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin: 0 0 6px;
+}
+.data-status__sep {
+  opacity: 0.5;
+}
+.data-status__note {
+  margin: 0;
+  opacity: 0.7;
+  font-size: 0.76rem;
+}
+
+@media (min-width: 560px) {
+  .app-title {
+    font-size: 1.8rem;
+  }
+}
