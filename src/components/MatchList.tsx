@@ -9,7 +9,7 @@ type Props = {
 };
 
 export function MatchList({ matches, noSpoiler }: Props) {
-  const groups = groupByDate(matches);
+  const groups = groupByDate(matches, "desc");
   return (
     <div class="match-list">
       {groups.map((g) => (

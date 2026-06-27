@@ -1,9 +1,9 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import type { Match } from "../src/lib/types.ts";
 import { mergeMatches, isPlaceholderTeam } from "../src/lib/mergeMatches.ts";
 import { normalizeVenue, STADIUMS } from "../src/lib/stadiums.ts";
 import { normalizeFootballData } from "../src/lib/footballData.ts";
-import { isTeamPlaying, filterByTeam } from "../src/lib/matches.ts";
+import { applyTabFilter, groupByDate, isTeamPlaying, filterByTeam } from "../src/lib/matches.ts";
 
 function m(overrides: Partial<Match> = {}): Match {
   return {
@@ -149,6 +149,36 @@ describe("team filter", () => {
     // Mexico is the away side in match b.
     expect(filterByTeam(matches, "Mexico")).toHaveLength(1);
     expect(filterByTeam(matches, "")).toHaveLength(2);
+  });
+});
+
+describe("match list filters and ordering", () => {
+  it("groups dates and matches newest-first when requested", () => {
+    const matches = [
+      m({ id: "old-late", kickoffUtc: "2026-06-13T22:00:00.000Z" }),
+      m({ id: "new", kickoffUtc: "2026-06-18T22:00:00.000Z" }),
+      m({ id: "old-early", kickoffUtc: "2026-06-13T19:00:00.000Z" }),
+    ];
+
+    const groups = groupByDate(matches, "desc");
+
+    expect(groups.map((g) => g.dateKey)).toEqual(["2026-06-18", "2026-06-13"]);
+    expect(groups[1]!.matches.map((match) => match.id)).toEqual(["old-late", "old-early"]);
+  });
+
+  it("adds a today tab filter", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-27T12:00:00.000Z"));
+    try {
+      const matches = [
+        m({ id: "today", kickoffUtc: "2026-06-27T18:00:00.000Z" }),
+        m({ id: "tomorrow", kickoffUtc: "2026-06-28T18:00:00.000Z" }),
+      ];
+
+      expect(applyTabFilter(matches, "today").map((match) => match.id)).toEqual(["today"]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

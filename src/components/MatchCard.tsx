@@ -10,7 +10,58 @@ type Props = {
   hero?: boolean;
 };
 
-function teamMark(team: string): string {
+const TEAM_FLAGS: Record<string, string> = {
+  Algeria: "🇩🇿",
+  Argentina: "🇦🇷",
+  Australia: "🇦🇺",
+  Austria: "🇦🇹",
+  Belgium: "🇧🇪",
+  "Bosnia & Herzegovina": "🇧🇦",
+  Brazil: "🇧🇷",
+  Canada: "🇨🇦",
+  "Cape Verde": "🇨🇻",
+  Colombia: "🇨🇴",
+  Croatia: "🇭🇷",
+  Curaçao: "🇨🇼",
+  "Czech Republic": "🇨🇿",
+  "DR Congo": "🇨🇩",
+  Ecuador: "🇪🇨",
+  Egypt: "🇪🇬",
+  England: "🏴",
+  France: "🇫🇷",
+  Germany: "🇩🇪",
+  Ghana: "🇬🇭",
+  Haiti: "🇭🇹",
+  Iran: "🇮🇷",
+  Iraq: "🇮🇶",
+  "Ivory Coast": "🇨🇮",
+  Japan: "🇯🇵",
+  Jordan: "🇯🇴",
+  Mexico: "🇲🇽",
+  Morocco: "🇲🇦",
+  Netherlands: "🇳🇱",
+  "New Zealand": "🇳🇿",
+  Norway: "🇳🇴",
+  Panama: "🇵🇦",
+  Paraguay: "🇵🇾",
+  Portugal: "🇵🇹",
+  Qatar: "🇶🇦",
+  "Saudi Arabia": "🇸🇦",
+  Scotland: "🏴",
+  Senegal: "🇸🇳",
+  "South Africa": "🇿🇦",
+  "South Korea": "🇰🇷",
+  Spain: "🇪🇸",
+  Sweden: "🇸🇪",
+  Switzerland: "🇨🇭",
+  Tunisia: "🇹🇳",
+  Turkey: "🇹🇷",
+  USA: "🇺🇸",
+  Uruguay: "🇺🇾",
+  Uzbekistan: "🇺🇿",
+};
+
+function teamInitials(team: string): string {
   return team
     .split(/\s+/)
     .filter(Boolean)
@@ -20,10 +71,17 @@ function teamMark(team: string): string {
     .toUpperCase();
 }
 
+function teamMark(team: string): { text: string; flag: boolean } {
+  const flag = TEAM_FLAGS[team];
+  return flag ? { text: flag, flag: true } : { text: teamInitials(team), flag: false };
+}
+
 export function MatchCard({ match, noSpoiler, hero = false }: Props) {
   const live = isLive(match.status);
   const showScore = hasScore(match) && !noSpoiler;
   const times = dualTime(match.kickoffUtc, match.stadiumId);
+  const homeMark = teamMark(match.homeTeam);
+  const awayMark = teamMark(match.awayTeam);
 
   // The score/result is hidden in no-spoiler mode; otherwise show score when we
   // have one, falling back to the kickoff time for upcoming matches.
@@ -50,7 +108,9 @@ export function MatchCard({ match, noSpoiler, hero = false }: Props) {
 
       <div class="match-card__scoreboard">
         <div class="match-card__side">
-          <span class="team-mark">{teamMark(match.homeTeam)}</span>
+          <span class={`team-mark${homeMark.flag ? " team-mark--flag" : ""}`}>
+            {homeMark.text}
+          </span>
           <span class="match-card__team">{match.homeTeam}</span>
         </div>
 
@@ -67,7 +127,9 @@ export function MatchCard({ match, noSpoiler, hero = false }: Props) {
 
         <div class="match-card__side match-card__side--away">
           <span class="match-card__team">{match.awayTeam}</span>
-          <span class="team-mark">{teamMark(match.awayTeam)}</span>
+          <span class={`team-mark${awayMark.flag ? " team-mark--flag" : ""}`}>
+            {awayMark.text}
+          </span>
         </div>
       </div>
 

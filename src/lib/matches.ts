@@ -2,7 +2,7 @@ import type { Match } from "./types.ts";
 import { ALL_STADIUMS_ID } from "../data/stadiums.ts";
 import { isLive, isFinished, isUpcoming } from "./matchStatus.ts";
 
-export type FilterTab = "all" | "upcoming" | "live" | "results";
+export type FilterTab = "all" | "today" | "upcoming" | "live" | "results";
 
 export function filterByStadium(matches: Match[], stadiumId: string): Match[] {
   if (stadiumId === ALL_STADIUMS_ID) return matches;
@@ -26,6 +26,8 @@ export function filterByTeam(matches: Match[], team: string): Match[] {
 
 export function applyTabFilter(matches: Match[], tab: FilterTab): Match[] {
   switch (tab) {
+    case "today":
+      return todaysMatches(matches);
     case "live":
       return matches.filter((m) => isLive(m.status));
     case "upcoming":
@@ -57,7 +59,8 @@ function localDateKey(iso: string): string {
 export type DateGroup = { dateKey: string; iso: string; matches: Match[] };
 
 /** Group matches by user-local date, each group sorted by kickoff. */
-export function groupByDate(matches: Match[]): DateGroup[] {
+export function groupByDate(matches: Match[], dir: "asc" | "desc" = "asc"): DateGroup[] {
+  const sign = dir === "asc" ? 1 : -1;
   const groups = new Map<string, Match[]>();
   for (const m of matches) {
     const key = localDateKey(m.kickoffUtc);
@@ -66,11 +69,11 @@ export function groupByDate(matches: Match[]): DateGroup[] {
     else groups.set(key, [m]);
   }
   return [...groups.entries()]
-    .sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))
+    .sort((a, b) => (a[0] < b[0] ? -sign : a[0] > b[0] ? sign : 0))
     .map(([dateKey, ms]) => ({
       dateKey,
-      iso: sortByKickoff(ms)[0]!.kickoffUtc,
-      matches: sortByKickoff(ms),
+      iso: sortByKickoff(ms, dir)[0]!.kickoffUtc,
+      matches: sortByKickoff(ms, dir),
     }));
 }
 

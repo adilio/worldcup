@@ -367,8 +367,8 @@ button {
 
 .team-mark {
   display: grid;
-  width: 30px;
-  height: 22px;
+  width: 32px;
+  height: 24px;
   flex: 0 0 auto;
   place-items: center;
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -378,6 +378,13 @@ button {
   font-size: 0.62rem;
   font-weight: 850;
   line-height: 1;
+}
+
+.team-mark--flag {
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.92);
+  font-size: 1.08rem;
+  font-weight: 400;
 }
 
 .match-card__team {
@@ -396,7 +403,7 @@ button {
   display: grid;
   min-width: 0;
   justify-items: start;
-  padding-left: 39px;
+  padding-left: 41px;
   color: var(--text);
 }
 

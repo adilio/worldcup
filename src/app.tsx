@@ -28,6 +28,7 @@ import { DataStatus } from "./components/DataStatus.tsx";
 
 const TABS: { id: FilterTab; label: string }[] = [
   { id: "all", label: "All" },
+  { id: "today", label: "Today" },
   { id: "upcoming", label: "Upcoming" },
   { id: "live", label: "Live" },
   { id: "results", label: "Results" },
@@ -208,6 +209,8 @@ export function App() {
               message={
                 tab === "live"
                   ? "No live matches at this stadium right now."
+                  : tab === "today"
+                    ? "No matches at this stadium today."
                   : "Nothing to show for this filter."
               }
             />
