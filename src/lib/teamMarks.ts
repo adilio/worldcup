@@ -16,6 +16,7 @@ const TEAM_FLAGS: Record<string, string> = {
   Croatia: "🇭🇷",
   Curaçao: "🇨🇼",
   "Czech Republic": "🇨🇿",
+  "Congo DR": "🇨🇩",
   "DR Congo": "🇨🇩",
   Ecuador: "🇪🇨",
   Egypt: "🇪🇬",
