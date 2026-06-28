@@ -612,27 +612,24 @@ button {
 /* Bracket */
 .bracket-view {
   display: grid;
-  grid-auto-columns: minmax(260px, 1fr);
+  grid-auto-columns: 260px;
   grid-auto-flow: column;
-  gap: 12px;
+  gap: 34px;
   overflow-x: auto;
-  padding-bottom: 8px;
+  padding: 2px 2px 12px;
   scrollbar-width: thin;
 }
 
 .bracket-round {
   min-width: 260px;
-  overflow: hidden;
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow: var(--shadow);
+  --slot-h: 122px;
+  --slot-gap: 10px;
+  --round-gap: calc((var(--round-step) - 1) * (var(--slot-h) + var(--slot-gap)));
 }
 
 .bracket-round__title {
   margin: 0;
-  padding: 11px 12px;
-  background: var(--surface-2);
+  padding: 0 0 10px;
   color: var(--text);
   font-size: 0.88rem;
   font-weight: 750;
@@ -640,12 +637,55 @@ button {
 
 .bracket-round__matches {
   display: grid;
+  gap: var(--round-gap);
+  padding-top: calc(var(--round-gap) / 2);
+}
+
+.bracket-slot {
+  position: relative;
+  min-height: var(--slot-h);
+  display: grid;
+  align-items: center;
+}
+
+.bracket-round:not(:last-child) .bracket-slot::after {
+  position: absolute;
+  top: 50%;
+  right: -34px;
+  width: 34px;
+  border-top: 1px solid var(--border);
+  content: "";
+}
+
+.bracket-round:not(:last-child) .bracket-slot:nth-child(odd)::before,
+.bracket-round:not(:last-child) .bracket-slot:nth-child(even)::before {
+  position: absolute;
+  right: -34px;
+  width: 17px;
+  border-right: 1px solid var(--border);
+  content: "";
+}
+
+.bracket-round:not(:last-child) .bracket-slot:nth-child(odd)::before {
+  top: 50%;
+  height: calc((var(--round-step) * (var(--slot-h) + var(--slot-gap))) / 2);
+  border-top: 1px solid var(--border);
+}
+
+.bracket-round:not(:last-child) .bracket-slot:nth-child(even)::before {
+  bottom: 50%;
+  height: calc((var(--round-step) * (var(--slot-h) + var(--slot-gap))) / 2);
+  border-bottom: 1px solid var(--border);
 }
 
 .bracket-card {
   position: relative;
+  z-index: 1;
   padding: 12px;
-  border-top: 1px solid var(--border-soft);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
 }
 
 .bracket-card--live::before {
@@ -718,6 +758,35 @@ button {
   color: var(--text);
   font-variant-numeric: tabular-nums;
   font-weight: 800;
+}
+
+.bracket-side-round {
+  margin-top: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.bracket-side-round__title {
+  margin: 0;
+  padding: 11px 12px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 0.88rem;
+  font-weight: 750;
+}
+
+.bracket-side-round__matches {
+  display: grid;
+}
+
+.bracket-side-round .bracket-card {
+  border: 0;
+  border-top: 1px solid var(--border-soft);
+  border-radius: 0;
+  box-shadow: none;
 }
 
 @media (min-width: 640px) {

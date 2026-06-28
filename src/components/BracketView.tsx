@@ -9,13 +9,12 @@ type Props = {
   noSpoiler: boolean;
 };
 
-const KNOCKOUT_STAGES: { id: Stage; label: string }[] = [
-  { id: "round_of_32", label: "Round of 32" },
-  { id: "round_of_16", label: "Round of 16" },
-  { id: "quarter_final", label: "Quarter-finals" },
-  { id: "semi_final", label: "Semi-finals" },
-  { id: "final", label: "Final" },
-  { id: "third_place", label: "Third place" },
+const MAIN_BRACKET_STAGES: { id: Stage; label: string; step: number }[] = [
+  { id: "round_of_32", label: "Round of 32", step: 1 },
+  { id: "round_of_16", label: "Round of 16", step: 2 },
+  { id: "quarter_final", label: "Quarter-finals", step: 4 },
+  { id: "semi_final", label: "Semi-finals", step: 8 },
+  { id: "final", label: "Final", step: 16 },
 ];
 
 function scoreFor(match: Match, side: "home" | "away", noSpoiler: boolean): string {
@@ -87,23 +86,43 @@ function BracketCard({ match, noSpoiler }: { match: Match; noSpoiler: boolean })
 export function BracketView({ matches, noSpoiler }: Props) {
   const knockout = matches.filter((m) => m.stage !== "group");
   if (!knockout.length) return null;
+  const thirdPlace = sortByKickoff(knockout.filter((m) => m.stage === "third_place"));
 
   return (
-    <div class="bracket-view" aria-label="World Cup knockout bracket">
-      {KNOCKOUT_STAGES.map(({ id, label }) => {
-        const roundMatches = sortByKickoff(knockout.filter((m) => m.stage === id));
-        if (!roundMatches.length) return null;
-        return (
-          <section key={id} class="bracket-round">
-            <h3 class="bracket-round__title">{label}</h3>
-            <div class="bracket-round__matches">
-              {roundMatches.map((m) => (
-                <BracketCard key={m.id} match={m} noSpoiler={noSpoiler} />
-              ))}
-            </div>
-          </section>
-        );
-      })}
-    </div>
+    <>
+      <div class="bracket-view" aria-label="World Cup knockout bracket">
+        {MAIN_BRACKET_STAGES.map(({ id, label, step }) => {
+          const roundMatches = sortByKickoff(knockout.filter((m) => m.stage === id));
+          if (!roundMatches.length) return null;
+          return (
+            <section
+              key={id}
+              class="bracket-round"
+              style={{ "--round-step": String(step) }}
+            >
+              <h3 class="bracket-round__title">{label}</h3>
+              <div class="bracket-round__matches">
+                {roundMatches.map((m) => (
+                  <div key={m.id} class="bracket-slot">
+                    <BracketCard match={m} noSpoiler={noSpoiler} />
+                  </div>
+                ))}
+              </div>
+            </section>
+          );
+        })}
+      </div>
+
+      {thirdPlace.length > 0 && (
+        <section class="bracket-side-round" aria-label="Third place match">
+          <h3 class="bracket-side-round__title">Third place</h3>
+          <div class="bracket-side-round__matches">
+            {thirdPlace.map((m) => (
+              <BracketCard key={m.id} match={m} noSpoiler={noSpoiler} />
+            ))}
+          </div>
+        </section>
+      )}
+    </>
   );
 }
