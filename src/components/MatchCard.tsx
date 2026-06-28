@@ -2,7 +2,7 @@ import type { Match } from "../lib/types.ts";
 import {
   statusLabel,
   stageLabel,
-  elapsedLabel,
+  elapsedClock,
   isLive,
   hasScore,
   hasPens,
@@ -104,7 +104,7 @@ export function MatchCard({ match, noSpoiler, hero = false }: Props) {
 
   const statusText = noSpoiler && match.status === "finished" ? "" : statusLabel(match);
   const stageText = stageLabel(match);
-  const elapsed = elapsedLabel(match);
+  const elapsed = elapsedClock(match);
 
   return (
     <article class={`match-card${hero ? " match-card--hero" : ""}${live ? " match-card--live" : ""}`}>
@@ -143,9 +143,13 @@ export function MatchCard({ match, noSpoiler, hero = false }: Props) {
 
       <div class="match-card__statusline">
         {live && (
-          <span class="badge badge--live">
+          <span
+            class="badge badge--live"
+            aria-label={elapsed ? `Live, ${elapsed.description}` : "Live"}
+            title={elapsed?.description}
+          >
             <span>Live</span>
-            {elapsed && <span class="badge__time">{elapsed}</span>}
+            {elapsed && <span class="badge__time" aria-hidden="true">{elapsed.label}</span>}
           </span>
         )}
         {!live && statusText && <span class="badge">{statusText}</span>}

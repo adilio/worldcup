@@ -4,7 +4,7 @@ import { mergeMatches, isPlaceholderTeam } from "../src/lib/mergeMatches.ts";
 import { normalizeVenue, STADIUMS } from "../src/lib/stadiums.ts";
 import { normalizeFootballData } from "../src/lib/footballData.ts";
 import { applyTabFilter, groupByDate, isTeamPlaying, filterByTeam } from "../src/lib/matches.ts";
-import { elapsedLabel } from "../src/lib/matchStatus.ts";
+import { elapsedClock, elapsedLabel } from "../src/lib/matchStatus.ts";
 
 function m(overrides: Partial<Match> = {}): Match {
   return {
@@ -258,7 +258,7 @@ describe("live elapsed labels", () => {
 
     expect(elapsedLabel(match, new Date("2026-06-27T23:30:00.000Z"))).toBe("1'");
     expect(elapsedLabel(match, new Date("2026-06-28T00:05:00.000Z"))).toBe("36'");
-    expect(elapsedLabel(match, new Date("2026-06-28T00:18:00.000Z"))).toBe("45+'");
+    expect(elapsedLabel(match, new Date("2026-06-28T00:18:00.000Z"))).toBe("45+ min");
     expect(elapsedLabel(match, new Date("2026-06-28T01:00:00.000Z"))).toBe("76'");
   });
 
@@ -266,6 +266,22 @@ describe("live elapsed labels", () => {
     expect(elapsedLabel(m({ status: "halftime" }))).toBe("HT");
     expect(elapsedLabel(m({ status: "scheduled" }))).toBeUndefined();
     expect(elapsedLabel(m({ status: "finished" }))).toBeUndefined();
+  });
+
+  it("describes stoppage-time labels clearly", () => {
+    const match = m({
+      status: "live",
+      kickoffUtc: "2026-06-27T23:30:00.000Z",
+    });
+
+    expect(elapsedClock(match, new Date("2026-06-28T00:18:00.000Z"))).toEqual({
+      label: "45+ min",
+      description: "Estimated first-half stoppage time",
+    });
+    expect(elapsedClock(match, new Date("2026-06-28T01:16:00.000Z"))).toEqual({
+      label: "90+ min",
+      description: "Estimated second-half stoppage time",
+    });
   });
 });
 

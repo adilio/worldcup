@@ -36,18 +36,34 @@ export function statusLabel(m: Match): string {
  * Estimated live clock. football-data.org exposes status and score, but not an
  * official elapsed minute, so this derives a conservative display from kickoff.
  */
-export function elapsedLabel(m: Match, now: Date = new Date()): string | undefined {
-  if (m.status === "halftime") return "HT";
+export type ElapsedClock = { label: string; description: string };
+
+export function elapsedClock(m: Match, now: Date = new Date()): ElapsedClock | undefined {
+  if (m.status === "halftime") {
+    return { label: "HT", description: "Halftime" };
+  }
   if (m.status !== "live") return undefined;
 
   const kickoffMs = new Date(m.kickoffUtc).getTime();
   if (Number.isNaN(kickoffMs)) return undefined;
 
   const elapsed = Math.max(0, Math.floor((now.getTime() - kickoffMs) / 60_000));
-  if (elapsed < 45) return `${elapsed + 1}'`;
-  if (elapsed < 60) return "45+'";
-  if (elapsed < 105) return `${Math.min(90, elapsed - 14)}'`;
-  return "90+'";
+  if (elapsed < 45) {
+    const minute = elapsed + 1;
+    return { label: `${minute}'`, description: `Estimated ${minute}th minute` };
+  }
+  if (elapsed < 60) {
+    return { label: "45+ min", description: "Estimated first-half stoppage time" };
+  }
+  if (elapsed < 105) {
+    const minute = Math.min(90, elapsed - 14);
+    return { label: `${minute}'`, description: `Estimated ${minute}th minute` };
+  }
+  return { label: "90+ min", description: "Estimated second-half stoppage time" };
+}
+
+export function elapsedLabel(m: Match, now: Date = new Date()): string | undefined {
+  return elapsedClock(m, now)?.label;
 }
 
 const STAGE_LABELS: Record<Stage, string> = {
