@@ -6,10 +6,11 @@ import { MatchCard } from "./MatchCard.tsx";
 type Props = {
   matches: Match[];
   noSpoiler: boolean;
+  liveFirst?: boolean;
 };
 
-export function MatchList({ matches, noSpoiler }: Props) {
-  const groups = groupByDate(matches, "desc");
+export function MatchList({ matches, noSpoiler, liveFirst = false }: Props) {
+  const groups = groupByDate(matches, "desc", liveFirst);
   return (
     <div class="match-list">
       {groups.map((g) => (

@@ -223,6 +223,20 @@ button {
   border-top-right-radius: 0;
 }
 
+.hero__cards {
+  display: grid;
+}
+
+.hero__cards .match-card + .match-card {
+  border-top: 0;
+  border-radius: 0;
+}
+
+.hero__cards .match-card:last-child {
+  border-bottom-right-radius: var(--radius);
+  border-bottom-left-radius: var(--radius);
+}
+
 /* Filters */
 .filters {
   display: flex;

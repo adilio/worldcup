@@ -123,6 +123,10 @@ export function App() {
     () => applyTabFilter(scopedMatches, tab),
     [scopedMatches, tab],
   );
+  const liveMatches = useMemo(
+    () => scopedMatches.filter((m) => isLive(m.status)),
+    [scopedMatches],
+  );
   const hero = useMemo(() => selectHeroMatch(scopedMatches), [scopedMatches]);
 
   const stadiumName =
@@ -166,7 +170,7 @@ export function App() {
           {hero ? (
             <section class="hero">
               <h2 class="hero__heading">
-                {hero.status === "live" || hero.status === "halftime"
+                {liveMatches.length > 0
                   ? isAllStadiums
                     ? "Live now"
                     : `Live at ${stadiumName}`
@@ -174,7 +178,11 @@ export function App() {
                     ? "Next up"
                     : `Next at ${stadiumName}`}
               </h2>
-              <MatchCard match={hero} noSpoiler={noSpoiler} hero />
+              <div class="hero__cards">
+                {(liveMatches.length > 0 ? liveMatches : [hero]).map((m) => (
+                  <MatchCard key={m.id} match={m} noSpoiler={noSpoiler} hero />
+                ))}
+              </div>
             </section>
           ) : (
             <EmptyState
@@ -202,7 +210,7 @@ export function App() {
           </nav>
 
           {visible.length > 0 ? (
-            <MatchList matches={visible} noSpoiler={noSpoiler} />
+            <MatchList matches={visible} noSpoiler={noSpoiler} liveFirst={tab === "today"} />
           ) : (
             <EmptyState
               title="No matches here"

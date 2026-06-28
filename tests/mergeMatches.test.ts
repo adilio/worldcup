@@ -3,7 +3,13 @@ import type { Match } from "../src/lib/types.ts";
 import { mergeMatches, isPlaceholderTeam } from "../src/lib/mergeMatches.ts";
 import { normalizeVenue, STADIUMS } from "../src/lib/stadiums.ts";
 import { normalizeFootballData } from "../src/lib/footballData.ts";
-import { applyTabFilter, groupByDate, isTeamPlaying, filterByTeam } from "../src/lib/matches.ts";
+import {
+  applyTabFilter,
+  groupByDate,
+  sortLiveFirst,
+  isTeamPlaying,
+  filterByTeam,
+} from "../src/lib/matches.ts";
 import { elapsedClock, elapsedLabel } from "../src/lib/matchStatus.ts";
 
 function m(overrides: Partial<Match> = {}): Match {
@@ -259,6 +265,20 @@ describe("match list filters and ordering", () => {
     expect(applyTabFilter(matches, "live").map((match) => match.id)).toEqual([
       "live-a",
       "live-b",
+    ]);
+  });
+
+  it("can sort live matches before scheduled matches for today's list", () => {
+    const matches = [
+      m({ id: "late-scheduled", status: "scheduled", kickoffUtc: "2026-06-27T23:30:00.000Z" }),
+      m({ id: "early-live", status: "live", kickoffUtc: "2026-06-27T20:00:00.000Z" }),
+      m({ id: "late-live", status: "halftime", kickoffUtc: "2026-06-27T21:00:00.000Z" }),
+    ];
+
+    expect(sortLiveFirst(matches, "desc").map((match) => match.id)).toEqual([
+      "late-live",
+      "early-live",
+      "late-scheduled",
     ]);
   });
 });

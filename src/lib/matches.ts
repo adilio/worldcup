@@ -47,6 +47,11 @@ export function sortByKickoff(matches: Match[], dir: "asc" | "desc" = "asc"): Ma
   );
 }
 
+export function sortLiveFirst(matches: Match[], dir: "asc" | "desc" = "asc"): Match[] {
+  const sorted = sortByKickoff(matches, dir);
+  return sorted.sort((a, b) => Number(isLive(b.status)) - Number(isLive(a.status)));
+}
+
 /** Local-date key (YYYY-MM-DD in the user's timezone) for grouping the list. */
 function localDateKey(iso: string): string {
   return new Intl.DateTimeFormat("en-CA", {
@@ -59,7 +64,11 @@ function localDateKey(iso: string): string {
 export type DateGroup = { dateKey: string; iso: string; matches: Match[] };
 
 /** Group matches by user-local date, each group sorted by kickoff. */
-export function groupByDate(matches: Match[], dir: "asc" | "desc" = "asc"): DateGroup[] {
+export function groupByDate(
+  matches: Match[],
+  dir: "asc" | "desc" = "asc",
+  liveFirst = false,
+): DateGroup[] {
   const sign = dir === "asc" ? 1 : -1;
   const groups = new Map<string, Match[]>();
   for (const m of matches) {
@@ -73,7 +82,7 @@ export function groupByDate(matches: Match[], dir: "asc" | "desc" = "asc"): Date
     .map(([dateKey, ms]) => ({
       dateKey,
       iso: sortByKickoff(ms, dir)[0]!.kickoffUtc,
-      matches: sortByKickoff(ms, dir),
+      matches: liveFirst ? sortLiveFirst(ms, dir) : sortByKickoff(ms, dir),
     }));
 }
 
