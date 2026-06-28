@@ -44,6 +44,9 @@ export function isPlaceholderTeam(name: string | undefined): boolean {
 type Indexed = { match: Match; index: number };
 
 const TEAM_ALIASES: ReadonlyMap<string, string> = new Map([
+  ["bosnia and herzegovina", "bosnia & herzegovina"],
+  ["bosnia-herzegovina", "bosnia & herzegovina"],
+  ["cabo verde", "cape verde"],
   ["cape verde islands", "cape verde"],
   ["congo dr", "dr congo"],
   ["cote d ivoire", "ivory coast"],
