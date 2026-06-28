@@ -32,6 +32,24 @@ export function statusLabel(m: Match): string {
   }
 }
 
+/**
+ * Estimated live clock. football-data.org exposes status and score, but not an
+ * official elapsed minute, so this derives a conservative display from kickoff.
+ */
+export function elapsedLabel(m: Match, now: Date = new Date()): string | undefined {
+  if (m.status === "halftime") return "HT";
+  if (m.status !== "live") return undefined;
+
+  const kickoffMs = new Date(m.kickoffUtc).getTime();
+  if (Number.isNaN(kickoffMs)) return undefined;
+
+  const elapsed = Math.max(0, Math.floor((now.getTime() - kickoffMs) / 60_000));
+  if (elapsed < 45) return `${elapsed + 1}'`;
+  if (elapsed < 60) return "45+'";
+  if (elapsed < 105) return `${Math.min(90, elapsed - 14)}'`;
+  return "90+'";
+}
+
 const STAGE_LABELS: Record<Stage, string> = {
   group: "Group",
   round_of_32: "Round of 32",

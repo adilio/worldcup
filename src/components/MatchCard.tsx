@@ -1,5 +1,12 @@
 import type { Match } from "../lib/types.ts";
-import { statusLabel, stageLabel, isLive, hasScore, hasPens } from "../lib/matchStatus.ts";
+import {
+  statusLabel,
+  stageLabel,
+  elapsedLabel,
+  isLive,
+  hasScore,
+  hasPens,
+} from "../lib/matchStatus.ts";
 import { dualTime, dateHeading, formatTime } from "../lib/formatDate.ts";
 import { downloadIcs } from "../lib/calendar.ts";
 import { shareMatch, canShare } from "../lib/share.ts";
@@ -97,6 +104,7 @@ export function MatchCard({ match, noSpoiler, hero = false }: Props) {
 
   const statusText = noSpoiler && match.status === "finished" ? "" : statusLabel(match);
   const stageText = stageLabel(match);
+  const elapsed = elapsedLabel(match);
 
   return (
     <article class={`match-card${hero ? " match-card--hero" : ""}${live ? " match-card--live" : ""}`}>
@@ -134,7 +142,12 @@ export function MatchCard({ match, noSpoiler, hero = false }: Props) {
       </div>
 
       <div class="match-card__statusline">
-        {live && <span class="badge badge--live">Live</span>}
+        {live && (
+          <span class="badge badge--live">
+            <span>Live</span>
+            {elapsed && <span class="badge__time">{elapsed}</span>}
+          </span>
+        )}
         {!live && statusText && <span class="badge">{statusText}</span>}
         <span>{times.local}</span>
         {times.venue && <span class="match-card__venuetime">venue {times.venue}</span>}

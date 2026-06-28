@@ -494,6 +494,7 @@ button {
 /* Badges */
 .badge {
   display: inline-flex;
+  gap: 6px;
   align-items: center;
   min-height: 22px;
   border: 1px solid var(--border-soft);
@@ -509,18 +510,25 @@ button {
 
 .badge--live {
   border-color: rgba(129, 201, 149, 0.5);
-  background: rgba(129, 201, 149, 0.14);
+  background: rgba(129, 201, 149, 0.18);
   color: var(--live);
+  box-shadow: 0 0 0 1px rgba(129, 201, 149, 0.08);
 }
 
 .badge--live::before {
   width: 6px;
   height: 6px;
-  margin-right: 6px;
   border-radius: 999px;
   background: currentColor;
   content: "";
   animation: pulse 1.6s ease-in-out infinite;
+}
+
+.badge__time {
+  padding-left: 6px;
+  border-left: 1px solid rgba(129, 201, 149, 0.35);
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
 }
 
 @keyframes pulse {
