@@ -1,5 +1,5 @@
 import type { Match, Stage } from "../lib/types.ts";
-import { formatTime } from "../lib/formatDate.ts";
+import { formatTime, formatDateShort } from "../lib/formatDate.ts";
 import { hasPens, hasScore, isLive, statusLabel } from "../lib/matchStatus.ts";
 import { sortByKickoff } from "../lib/matches.ts";
 import { teamMark } from "../lib/teamMarks.ts";
@@ -75,6 +75,8 @@ function BracketCard({ match, noSpoiler }: { match: Match; noSpoiler: boolean })
         winner={winner === "away"}
       />
       <div class="bracket-card__footer">
+        <span>{formatDateShort(match.kickoffUtc)}</span>
+        <span class="bracket-card__dot">·</span>
         <span>{formatTime(match.kickoffUtc)}</span>
         <span class="bracket-card__dot">·</span>
         <span>{match.city}</span>
