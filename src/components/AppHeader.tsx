@@ -5,8 +5,8 @@ export function AppHeader() {
       <div>
         <p class="app-kicker">FIFA World Cup 2026</p>
         <h1 class="app-title">World Cup Tracker</h1>
-        <a class="app-domain" href="https://4dlwc.netlify.app/">
-          4dlwc.netlify.app
+        <a class="app-domain" href="https://worldcup.4dl.ca/">
+          worldcup.4dl.ca
         </a>
       </div>
     </header>
