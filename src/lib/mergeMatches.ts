@@ -35,6 +35,9 @@ export function isPlaceholderTeam(name: string | undefined): boolean {
   // Slot codes like "1A", "2B", "W73", "RU-C".
   if (/^[wlru]*-?\d*[a-l]$/i.test(n)) return true;
   if (/^[wl]\d{1,3}$/i.test(n)) return true;
+  // Best-third-place codes like "3A/B/C/D/F", "3C/E/F/H/I" — a digit followed
+  // by a slash-separated list of group letters.
+  if (/^\d[a-l](\/[a-l])+$/i.test(n)) return true;
   return false;
 }
 

@@ -1,7 +1,7 @@
 {
   "source": "openfootball",
   "note": "Static World Cup 2026 schedule spine. Live providers decorate this.",
-  "generatedAt": "2026-06-27T20:30:45.084Z",
+  "generatedAt": "2026-06-28T06:40:37.053Z",
   "count": 104,
   "matches": [
     {
@@ -1383,12 +1383,18 @@
       "group": "L",
       "homeTeam": "Panama",
       "awayTeam": "England",
-      "status": "scheduled",
+      "status": "finished",
       "kickoffUtc": "2026-06-27T21:00:00.000Z",
       "stadium": "MetLife Stadium",
       "stadiumId": "metlife",
       "city": "New York New Jersey",
-      "country": "United States"
+      "country": "United States",
+      "homeScore": 0,
+      "awayScore": 2,
+      "scorers": [
+        "Jude Bellingham 62'",
+        "Harry Kane 67'"
+      ]
     },
     {
       "id": "wc2026-67",
@@ -1397,12 +1403,19 @@
       "group": "L",
       "homeTeam": "Croatia",
       "awayTeam": "Ghana",
-      "status": "scheduled",
+      "status": "finished",
       "kickoffUtc": "2026-06-27T21:00:00.000Z",
       "stadium": "Lincoln Financial Field",
       "stadiumId": "lincoln-financial",
       "city": "Philadelphia",
-      "country": "United States"
+      "country": "United States",
+      "homeScore": 2,
+      "awayScore": 1,
+      "scorers": [
+        "Petar Sucic 31'",
+        "Nikola Vlasic 83'",
+        "Derrick Luckassen 73'"
+      ]
     },
     {
       "id": "wc2026-69",
@@ -1411,12 +1424,14 @@
       "group": "K",
       "homeTeam": "Colombia",
       "awayTeam": "Portugal",
-      "status": "scheduled",
+      "status": "finished",
       "kickoffUtc": "2026-06-27T23:30:00.000Z",
       "stadium": "Hard Rock Stadium",
       "stadiumId": "hard-rock",
       "city": "Miami (Miami Gardens)",
-      "country": "United States"
+      "country": "United States",
+      "homeScore": 0,
+      "awayScore": 0
     },
     {
       "id": "wc2026-70",
@@ -1425,12 +1440,20 @@
       "group": "K",
       "homeTeam": "DR Congo",
       "awayTeam": "Uzbekistan",
-      "status": "scheduled",
+      "status": "finished",
       "kickoffUtc": "2026-06-27T23:30:00.000Z",
       "stadium": "Mercedes-Benz Stadium",
       "stadiumId": "mercedes-benz",
       "city": "Atlanta",
-      "country": "United States"
+      "country": "United States",
+      "homeScore": 3,
+      "awayScore": 1,
+      "scorers": [
+        "Yoane Wissa 68'",
+        "Fiston Mayele 78'",
+        "Yoane Wissa 90+1'",
+        "Eldor Shomurodov 10'"
+      ]
     },
     {
       "id": "wc2026-71",
@@ -1439,12 +1462,22 @@
       "group": "J",
       "homeTeam": "Algeria",
       "awayTeam": "Austria",
-      "status": "scheduled",
+      "status": "finished",
       "kickoffUtc": "2026-06-28T02:00:00.000Z",
       "stadium": "Arrowhead Stadium",
       "stadiumId": "arrowhead",
       "city": "Kansas City",
-      "country": "United States"
+      "country": "United States",
+      "homeScore": 3,
+      "awayScore": 3,
+      "scorers": [
+        "Rafik Belghali 45'",
+        "Riyad Mahrez 60'",
+        "Riyad Mahrez 90+3'",
+        "Marko Arnautovic 28'",
+        "Marcel Sabitzer 55'",
+        "Sasa Kalajdzic 90+6'"
+      ]
     },
     {
       "id": "wc2026-72",
@@ -1453,12 +1486,20 @@
       "group": "J",
       "homeTeam": "Jordan",
       "awayTeam": "Argentina",
-      "status": "scheduled",
+      "status": "finished",
       "kickoffUtc": "2026-06-28T02:00:00.000Z",
       "stadium": "AT&T Stadium",
       "stadiumId": "att",
       "city": "Dallas (Arlington)",
-      "country": "United States"
+      "country": "United States",
+      "homeScore": 1,
+      "awayScore": 3,
+      "scorers": [
+        "Mousa Al-Tamari 55'",
+        "Giovani Lo Celso 19'",
+        "Lautaro Martínez 31'",
+        "Lionel Messi 80'"
+      ]
     },
     {
       "id": "wc2026-73",

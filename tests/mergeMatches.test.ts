@@ -236,7 +236,11 @@ describe("mergeMatches — spine is the source of truth", () => {
 
 describe("isPlaceholderTeam", () => {
   it("flags unresolved placeholders", () => {
-    for (const p of ["Winner Group A", "Runner-up B", "1A", "2C", "W73", "TBD", "Loser 101", "", undefined]) {
+    for (const p of [
+      "Winner Group A", "Runner-up B", "1A", "2C", "W73", "TBD", "Loser 101", "", undefined,
+      // Best-third-place slot codes used by openfootball for the 2026 R32 draw
+      "3A/B/C/D/F", "3C/D/F/G/H", "3C/E/F/H/I", "3E/H/I/J/K", "3B/E/F/I/J",
+    ]) {
       expect(isPlaceholderTeam(p)).toBe(true);
     }
   });
