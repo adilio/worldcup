@@ -97,6 +97,17 @@ export function normalizeFootballData(data: FdResponse): Match[] {
     const stadium = getStadium(stadiumId);
     const home = m.homeTeam?.name ?? m.homeTeam?.shortName ?? "TBD";
     const away = m.awayTeam?.name ?? m.awayTeam?.shortName ?? "TBD";
+    const homeScore = num(m.score?.fullTime?.home);
+    const awayScore = num(m.score?.fullTime?.away);
+    const providerStatus = mapStatus(m.status);
+    // football-data.org sometimes publishes the full-time score before it flips
+    // the status off SCHEDULED/TIMED. A full-time score is definitive for a match
+    // the provider still considers not-started; leave in-progress/live statuses be.
+    const hasFullTime = homeScore !== undefined && awayScore !== undefined;
+    const status: MatchStatus =
+      hasFullTime && (providerStatus === "scheduled" || providerStatus === "unknown")
+        ? "finished"
+        : providerStatus;
 
     return {
       id: m.id ? `fd-${m.id}` : `fd-${home}-${away}-${m.utcDate ?? ""}`,
@@ -105,11 +116,11 @@ export function normalizeFootballData(data: FdResponse): Match[] {
       group: mapGroup(m.group),
       homeTeam: home,
       awayTeam: away,
-      homeScore: num(m.score?.fullTime?.home),
-      awayScore: num(m.score?.fullTime?.away),
+      homeScore,
+      awayScore,
       homePens: num(m.score?.penalties?.home),
       awayPens: num(m.score?.penalties?.away),
-      status: mapStatus(m.status),
+      status,
       kickoffUtc: m.utcDate ?? "",
       stadium: stadium?.name ?? m.venue ?? "",
       stadiumId,

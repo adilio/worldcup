@@ -415,4 +415,24 @@ describe("football-data.org adapter — status mapping", () => {
     expect(out[0]!.awayPens).toBe(3);
     expect(out[0]!.stadiumId).toBe("att");
   });
+
+  it("treats a scored match as finished when the provider status lags as SCHEDULED", () => {
+    const out = normalizeFootballData({
+      matches: [
+        {
+          id: 5,
+          utcDate: "2026-06-27T23:30:00Z",
+          status: "TIMED",
+          stage: "GROUP_STAGE",
+          homeTeam: { name: "DR Congo" },
+          awayTeam: { name: "Uzbekistan" },
+          score: { fullTime: { home: 3, away: 1 } },
+          venue: "Lumen Field",
+        },
+      ],
+    });
+    expect(out[0]!.status).toBe("finished");
+    expect(out[0]!.homeScore).toBe(3);
+    expect(out[0]!.awayScore).toBe(1);
+  });
 });
