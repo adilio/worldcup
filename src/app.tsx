@@ -23,12 +23,14 @@ import { AppHeader } from "./components/AppHeader.tsx";
 import { StadiumSelect } from "./components/StadiumSelect.tsx";
 import { MatchCard } from "./components/MatchCard.tsx";
 import { MatchList } from "./components/MatchList.tsx";
+import { BracketView } from "./components/BracketView.tsx";
 import { EmptyState } from "./components/EmptyState.tsx";
 import { DataStatus } from "./components/DataStatus.tsx";
 
 const TABS: { id: FilterTab; label: string }[] = [
   { id: "today", label: "Today" },
   { id: "live", label: "Live" },
+  { id: "bracket", label: "Bracket" },
   { id: "upcoming", label: "Upcoming" },
   { id: "results", label: "Results" },
   { id: "all", label: "All" },
@@ -123,6 +125,10 @@ export function App() {
     () => applyTabFilter(scopedMatches, tab),
     [scopedMatches, tab],
   );
+  const bracketMatches = useMemo(
+    () => applyTabFilter(canadaOnly ? filterByTeam(allMatches, "Canada") : allMatches, "bracket"),
+    [allMatches, canadaOnly],
+  );
   const liveMatches = useMemo(
     () => scopedMatches.filter((m) => isLive(m.status)),
     [scopedMatches],
@@ -209,7 +215,9 @@ export function App() {
             ))}
           </nav>
 
-          {visible.length > 0 ? (
+          {tab === "bracket" ? (
+            <BracketView matches={bracketMatches} noSpoiler={noSpoiler} />
+          ) : visible.length > 0 ? (
             <MatchList matches={visible} noSpoiler={noSpoiler} liveFirst={tab === "today"} />
           ) : (
             <EmptyState

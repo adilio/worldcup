@@ -4,7 +4,7 @@ import { DEFAULT_STADIUM_ID, getStadium } from "./stadiums.ts";
 const FUNCTION_URL = "/.netlify/functions/matches";
 const STATIC_URL = "/data/world-cup-2026-static.json";
 
-const APP_NAME = "4dl World Cup 2026";
+const APP_NAME = "World Cup Tracker";
 const defaultStadiumName = getStadium(DEFAULT_STADIUM_ID)?.name ?? "BC Place";
 
 type StaticFile = { source?: string; generatedAt?: string; matches: Match[] };

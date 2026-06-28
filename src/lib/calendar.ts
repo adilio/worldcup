@@ -23,7 +23,7 @@ export function buildIcs(m: Match): string {
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//4dl World Cup 2026//EN",
+    "PRODID:-//World Cup Tracker//EN",
     "CALSCALE:GREGORIAN",
     "BEGIN:VEVENT",
     `UID:${m.id}@worldcup.4dl.ca`,

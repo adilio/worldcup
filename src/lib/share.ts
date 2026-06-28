@@ -22,7 +22,7 @@ export async function shareMatch(match: Match): Promise<void> {
   const url = "https://worldcup.4dl.ca";
   try {
     if (canShare()) {
-      await navigator.share({ title: "4dl World Cup 2026", text, url });
+      await navigator.share({ title: "World Cup Tracker", text, url });
       return;
     }
   } catch (err) {

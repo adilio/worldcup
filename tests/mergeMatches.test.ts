@@ -268,6 +268,19 @@ describe("match list filters and ordering", () => {
     ]);
   });
 
+  it("filters knockout matches for the bracket tab", () => {
+    const matches = [
+      m({ id: "group", stage: "group" }),
+      m({ id: "r32", stage: "round_of_32" }),
+      m({ id: "final", stage: "final" }),
+    ];
+
+    expect(applyTabFilter(matches, "bracket").map((match) => match.id)).toEqual([
+      "r32",
+      "final",
+    ]);
+  });
+
   it("can sort live matches before scheduled matches for today's list", () => {
     const matches = [
       m({ id: "late-scheduled", status: "scheduled", kickoffUtc: "2026-06-27T23:30:00.000Z" }),

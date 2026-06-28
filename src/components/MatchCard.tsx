@@ -10,78 +10,13 @@ import {
 import { dualTime, dateHeading, formatTime } from "../lib/formatDate.ts";
 import { downloadIcs } from "../lib/calendar.ts";
 import { shareMatch, canShare } from "../lib/share.ts";
+import { teamMark } from "../lib/teamMarks.ts";
 
 type Props = {
   match: Match;
   noSpoiler: boolean;
   hero?: boolean;
 };
-
-const TEAM_FLAGS: Record<string, string> = {
-  Algeria: "🇩🇿",
-  Argentina: "🇦🇷",
-  Australia: "🇦🇺",
-  Austria: "🇦🇹",
-  Belgium: "🇧🇪",
-  "Bosnia & Herzegovina": "🇧🇦",
-  Brazil: "🇧🇷",
-  Canada: "🇨🇦",
-  "Cape Verde": "🇨🇻",
-  Colombia: "🇨🇴",
-  Croatia: "🇭🇷",
-  Curaçao: "🇨🇼",
-  "Czech Republic": "🇨🇿",
-  "DR Congo": "🇨🇩",
-  Ecuador: "🇪🇨",
-  Egypt: "🇪🇬",
-  England: "🇬🇧",
-  France: "🇫🇷",
-  Germany: "🇩🇪",
-  Ghana: "🇬🇭",
-  Haiti: "🇭🇹",
-  Iran: "🇮🇷",
-  Iraq: "🇮🇶",
-  "Ivory Coast": "🇨🇮",
-  Japan: "🇯🇵",
-  Jordan: "🇯🇴",
-  Mexico: "🇲🇽",
-  Morocco: "🇲🇦",
-  Netherlands: "🇳🇱",
-  "New Zealand": "🇳🇿",
-  Norway: "🇳🇴",
-  Panama: "🇵🇦",
-  Paraguay: "🇵🇾",
-  Portugal: "🇵🇹",
-  Qatar: "🇶🇦",
-  "Saudi Arabia": "🇸🇦",
-  Scotland: "🏴",
-  Senegal: "🇸🇳",
-  "South Africa": "🇿🇦",
-  "South Korea": "🇰🇷",
-  Spain: "🇪🇸",
-  Sweden: "🇸🇪",
-  Switzerland: "🇨🇭",
-  Tunisia: "🇹🇳",
-  Turkey: "🇹🇷",
-  USA: "🇺🇸",
-  Uruguay: "🇺🇾",
-  Uzbekistan: "🇺🇿",
-};
-
-function teamInitials(team: string): string {
-  return team
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
-}
-
-function teamMark(team: string): { text: string; flag: boolean } {
-  const flag = TEAM_FLAGS[team];
-  return flag ? { text: flag, flag: true } : { text: teamInitials(team), flag: false };
-}
 
 export function MatchCard({ match, noSpoiler, hero = false }: Props) {
   const live = isLive(match.status);
