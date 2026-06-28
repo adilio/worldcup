@@ -7,8 +7,6 @@ import {
   applyTabFilter,
   groupByDate,
   sortLiveFirst,
-  isTeamPlaying,
-  filterByTeam,
 } from "../src/lib/matches.ts";
 import { elapsedClock, elapsedLabel } from "../src/lib/matchStatus.ts";
 
@@ -201,27 +199,6 @@ describe("isPlaceholderTeam", () => {
     for (const t of ["Canada", "Mexico", "South Africa", "Côte d'Ivoire", "United States"]) {
       expect(isPlaceholderTeam(t)).toBe(false);
     }
-  });
-});
-
-describe("team filter", () => {
-  it("matches either side, case-insensitively", () => {
-    const match = m({ homeTeam: "Canada", awayTeam: "Croatia" });
-    expect(isTeamPlaying(match, "Canada")).toBe(true);
-    expect(isTeamPlaying(match, "croatia")).toBe(true);
-    expect(isTeamPlaying(match, "Mexico")).toBe(false);
-    expect(isTeamPlaying(match, "")).toBe(false);
-  });
-
-  it("filters a list down to the team's matches", () => {
-    const matches = [
-      m({ id: "a", matchNumber: 1, homeTeam: "Canada", awayTeam: "Croatia" }),
-      m({ id: "b", matchNumber: 2, homeTeam: "Brazil", awayTeam: "Mexico" }),
-    ];
-    expect(filterByTeam(matches, "Canada")).toHaveLength(1);
-    // Mexico is the away side in match b.
-    expect(filterByTeam(matches, "Mexico")).toHaveLength(1);
-    expect(filterByTeam(matches, "")).toHaveLength(2);
   });
 });
 

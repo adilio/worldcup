@@ -9,21 +9,6 @@ export function filterByStadium(matches: Match[], stadiumId: string): Match[] {
   return matches.filter((m) => m.stadiumId === stadiumId);
 }
 
-/** True if `team` (case-insensitive) is the home or away side in the match. */
-export function isTeamPlaying(match: Match, team: string): boolean {
-  const t = team.trim().toLowerCase();
-  if (!t) return false;
-  return (
-    match.homeTeam.trim().toLowerCase() === t ||
-    match.awayTeam.trim().toLowerCase() === t
-  );
-}
-
-export function filterByTeam(matches: Match[], team: string): Match[] {
-  if (!team) return matches;
-  return matches.filter((m) => isTeamPlaying(m, team));
-}
-
 export function applyTabFilter(matches: Match[], tab: FilterTab): Match[] {
   switch (tab) {
     case "today":

@@ -3,7 +3,6 @@ import { ALL_STADIUMS_ID } from "../data/stadiums.ts";
 
 const STADIUM_KEY = "4dl-wc2026-preferred-stadium";
 const SPOILER_KEY = "4dl-wc2026-no-spoiler";
-const CANADA_KEY = "4dl-wc2026-canada-only";
 
 function isValidStadiumId(id: string | null): id is string {
   return !!id && (id === ALL_STADIUMS_ID || !!getStadium(id));
@@ -39,22 +38,6 @@ export function loadNoSpoiler(): boolean {
 export function saveNoSpoiler(value: boolean): void {
   try {
     localStorage.setItem(SPOILER_KEY, String(value));
-  } catch {
-    // Ignore.
-  }
-}
-
-export function loadCanadaOnly(): boolean {
-  try {
-    return localStorage.getItem(CANADA_KEY) === "true";
-  } catch {
-    return false;
-  }
-}
-
-export function saveCanadaOnly(value: boolean): void {
-  try {
-    localStorage.setItem(CANADA_KEY, String(value));
   } catch {
     // Ignore.
   }

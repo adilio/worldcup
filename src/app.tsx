@@ -6,12 +6,9 @@ import {
   savePreferredStadium,
   loadNoSpoiler,
   saveNoSpoiler,
-  loadCanadaOnly,
-  saveCanadaOnly,
 } from "./lib/storage.ts";
 import {
   filterByStadium,
-  filterByTeam,
   applyTabFilter,
   selectHeroMatch,
   todaysMatches,
@@ -51,7 +48,6 @@ export function App() {
   const [stadiumId, setStadiumId] = useState<string>(loadPreferredStadium());
   const [tab, setTab] = useState<FilterTab>("today");
   const [noSpoiler, setNoSpoiler] = useState<boolean>(loadNoSpoiler());
-  const [canadaOnly, setCanadaOnly] = useState<boolean>(loadCanadaOnly());
 
   const [data, setData] = useState<MatchesResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -88,21 +84,15 @@ export function App() {
     () => filterByStadium(allMatches, stadiumId),
     [allMatches, stadiumId],
   );
-  // Canada filter composes on top of the stadium filter so a user can follow
-  // Canada across every stadium (pick "All stadiums" + Canada only).
-  const scopedMatches = useMemo(
-    () => (canadaOnly ? filterByTeam(stadiumMatches, "Canada") : stadiumMatches),
-    [stadiumMatches, canadaOnly],
-  );
 
-  // Adaptive polling: cadence depends on whether the scoped set has a live
-  // match, a match today, or nothing today.
+  // Adaptive polling: cadence depends on whether the selected stadium has a
+  // live match, a match today, or nothing today.
   useEffect(() => {
     if (!data) return;
-    const interval = pollInterval(scopedMatches);
+    const interval = pollInterval(stadiumMatches);
     const id = setInterval(() => void load(), interval);
     return () => clearInterval(id);
-  }, [data, scopedMatches]);
+  }, [data, stadiumMatches]);
 
   function changeStadium(id: string) {
     setStadiumId(id);
@@ -115,25 +105,16 @@ export function App() {
     saveNoSpoiler(next);
   }
 
-  function toggleCanada() {
-    const next = !canadaOnly;
-    setCanadaOnly(next);
-    saveCanadaOnly(next);
-  }
-
   const visible = useMemo(
-    () => applyTabFilter(scopedMatches, tab),
-    [scopedMatches, tab],
+    () => applyTabFilter(stadiumMatches, tab),
+    [stadiumMatches, tab],
   );
-  const bracketMatches = useMemo(
-    () => applyTabFilter(canadaOnly ? filterByTeam(allMatches, "Canada") : allMatches, "bracket"),
-    [allMatches, canadaOnly],
-  );
+  const bracketMatches = useMemo(() => applyTabFilter(allMatches, "bracket"), [allMatches]);
   const liveMatches = useMemo(
-    () => scopedMatches.filter((m) => isLive(m.status)),
-    [scopedMatches],
+    () => stadiumMatches.filter((m) => isLive(m.status)),
+    [stadiumMatches],
   );
-  const hero = useMemo(() => selectHeroMatch(scopedMatches), [scopedMatches]);
+  const hero = useMemo(() => selectHeroMatch(stadiumMatches), [stadiumMatches]);
 
   const stadiumName =
     stadiumId === ALL_STADIUMS_ID ? "All stadiums" : getStadium(stadiumId)?.name ?? "—";
@@ -145,20 +126,10 @@ export function App() {
 
       <div class="app__controls">
         <StadiumSelect value={stadiumId} onChange={changeStadium} />
-        <div class="app__toggles">
-          <button
-            type="button"
-            class={`chip${canadaOnly ? " chip--active" : ""}`}
-            aria-pressed={canadaOnly}
-            onClick={toggleCanada}
-          >
-            🇨🇦 Canada only
-          </button>
-          <label class="spoiler-toggle">
-            <input type="checkbox" checked={noSpoiler} onChange={toggleSpoiler} />
-            <span>No-spoiler</span>
-          </label>
-        </div>
+        <label class="spoiler-toggle">
+          <input type="checkbox" checked={noSpoiler} onChange={toggleSpoiler} />
+          <span>No-spoiler</span>
+        </label>
       </div>
 
       {loading && !data && (
@@ -192,12 +163,8 @@ export function App() {
             </section>
           ) : (
             <EmptyState
-              title={`No ${canadaOnly ? "Canada " : ""}matches at ${stadiumName}`}
-              message={
-                canadaOnly
-                  ? "Try All stadiums, or turn off the Canada filter."
-                  : "Try selecting a different stadium."
-              }
+              title={`No matches at ${stadiumName}`}
+              message="Try selecting a different stadium."
             />
           )}
 

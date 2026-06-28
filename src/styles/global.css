@@ -149,47 +149,23 @@ button {
 }
 
 .stadium-select__input:focus-visible,
-.chip:focus-visible,
 .filters__tab:focus-visible,
 .card-btn:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
-.app__toggles {
+.spoiler-toggle {
   display: flex;
-  flex-wrap: wrap;
   gap: 8px;
   align-items: center;
-}
-
-.chip,
-.spoiler-toggle {
   min-height: 38px;
+  padding: 8px 12px;
   border: 1px solid var(--border-soft);
   border-radius: 999px;
   background: var(--surface);
   color: var(--text-dim);
   font-size: 0.88rem;
-}
-
-.chip {
-  padding: 8px 14px;
-  cursor: pointer;
-}
-
-.chip--active {
-  background: var(--accent-strong);
-  border-color: var(--accent-strong);
-  color: #202124;
-  font-weight: 700;
-}
-
-.spoiler-toggle {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  padding: 8px 12px;
   white-space: nowrap;
 }
 
