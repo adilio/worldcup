@@ -280,19 +280,6 @@ describe("match list filters and ordering", () => {
     }
   });
 
-  it("shows all live matches in the live tab filter", () => {
-    const matches = [
-      m({ id: "live-a", status: "live" }),
-      m({ id: "live-b", status: "halftime" }),
-      m({ id: "scheduled", status: "scheduled" }),
-      m({ id: "finished", status: "finished" }),
-    ];
-
-    expect(applyTabFilter(matches, "live").map((match) => match.id)).toEqual([
-      "live-a",
-      "live-b",
-    ]);
-  });
 
   it("filters knockout matches for the bracket tab", () => {
     const matches = [

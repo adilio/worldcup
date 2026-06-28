@@ -2,7 +2,7 @@ import type { Match } from "./types.ts";
 import { ALL_STADIUMS_ID } from "../data/stadiums.ts";
 import { isLive, isFinished, isUpcoming } from "./matchStatus.ts";
 
-export type FilterTab = "all" | "today" | "live" | "bracket" | "upcoming" | "results";
+export type FilterTab = "all" | "today" | "bracket" | "upcoming" | "results";
 
 export function filterByStadium(matches: Match[], stadiumId: string): Match[] {
   if (stadiumId === ALL_STADIUMS_ID) return matches;
@@ -13,8 +13,6 @@ export function applyTabFilter(matches: Match[], tab: FilterTab): Match[] {
   switch (tab) {
     case "today":
       return todaysMatches(matches);
-    case "live":
-      return matches.filter((m) => isLive(m.status));
     case "bracket":
       return matches.filter((m) => m.stage !== "group");
     case "upcoming":

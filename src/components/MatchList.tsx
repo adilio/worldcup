@@ -7,10 +7,11 @@ type Props = {
   matches: Match[];
   noSpoiler: boolean;
   liveFirst?: boolean;
+  dir?: "asc" | "desc";
 };
 
-export function MatchList({ matches, noSpoiler, liveFirst = false }: Props) {
-  const groups = groupByDate(matches, "desc", liveFirst);
+export function MatchList({ matches, noSpoiler, liveFirst = false, dir = "desc" }: Props) {
+  const groups = groupByDate(matches, dir, liveFirst);
   return (
     <div class="match-list">
       {groups.map((g) => (
