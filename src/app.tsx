@@ -27,11 +27,11 @@ import { EmptyState } from "./components/EmptyState.tsx";
 import { DataStatus } from "./components/DataStatus.tsx";
 
 const TABS: { id: FilterTab; label: string }[] = [
-  { id: "all", label: "All" },
   { id: "today", label: "Today" },
-  { id: "upcoming", label: "Upcoming" },
   { id: "live", label: "Live" },
+  { id: "upcoming", label: "Upcoming" },
   { id: "results", label: "Results" },
+  { id: "all", label: "All" },
 ];
 
 // Polling cadence (ms) per the plan's conservative strategy.
@@ -47,7 +47,7 @@ function pollInterval(stadiumMatches: Match[]): number {
 
 export function App() {
   const [stadiumId, setStadiumId] = useState<string>(loadPreferredStadium());
-  const [tab, setTab] = useState<FilterTab>("all");
+  const [tab, setTab] = useState<FilterTab>("today");
   const [noSpoiler, setNoSpoiler] = useState<boolean>(loadNoSpoiler());
   const [canadaOnly, setCanadaOnly] = useState<boolean>(loadCanadaOnly());
 
