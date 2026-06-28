@@ -1,6 +1,6 @@
 import staticData from "../../public/data/world-cup-2026-static.json" with { type: "json" };
 import type { Match, MatchesResponse } from "../../src/lib/types.ts";
-import { mergeMatches } from "../../src/lib/mergeMatches.ts";
+import { mergeMatches, resolveKnockoutTeams } from "../../src/lib/mergeMatches.ts";
 import { normalizeFootballData, type FdResponse } from "../../src/lib/footballData.ts";
 import { normalizeOpenfootball, type OfFile } from "../../src/lib/openfootball.ts";
 import { isLive } from "../../src/lib/matchStatus.ts";
@@ -64,7 +64,9 @@ export default async function handler(): Promise<Response> {
   let live = await tryFootballData();
   if (!live) live = await tryOpenfootballMirror();
 
-  const merged = live ? mergeMatches(SPINE, live.matches) : SPINE.map((m) => ({ ...m }));
+  const merged = live
+    ? mergeMatches(SPINE, live.matches)
+    : resolveKnockoutTeams(SPINE.map((m) => ({ ...m })));
   const source = live ? live.source : "static schedule";
   // Primary live source is football-data.org; anything else is a fallback path.
   const fallbackUsed = source !== "football-data.org";

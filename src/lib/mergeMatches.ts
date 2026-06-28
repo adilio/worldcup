@@ -195,8 +195,46 @@ function decorate(staticMatch: Match, live: Match): Match {
 export function mergeMatches(staticMatches: Match[], liveMatches: Match[]): Match[] {
   if (!liveMatches.length) return staticMatches.map((m) => ({ ...m }));
   const index = buildLiveIndex(liveMatches);
-  return staticMatches.map((m) => {
+  const merged = staticMatches.map((m) => {
     const live = findLiveMatch(m, index);
     return live ? decorate(m, live) : { ...m };
+  });
+  return resolveKnockoutTeams(merged);
+}
+
+/**
+ * Resolve W{N} / L{N} placeholder team names from finished matches in the
+ * merged list. The live provider does not always back-fill team names into
+ * future knockout fixtures, so we derive them locally once the source match
+ * is finished and its own teams are real (non-placeholder).
+ */
+export function resolveKnockoutTeams(matches: Match[]): Match[] {
+  const byNumber = new Map<number, Match>();
+  for (const m of matches) {
+    if (typeof m.matchNumber === "number") byNumber.set(m.matchNumber, m);
+  }
+
+  function derive(placeholder: string): string | undefined {
+    const m = /^([wWlL])(\d{1,3})$/.exec(placeholder);
+    if (!m) return undefined;
+    const wantWinner = m[1].toLowerCase() === "w";
+    const src = byNumber.get(Number(m[2]));
+    if (!src || src.status !== "finished") return undefined;
+    if (isPlaceholderTeam(src.homeTeam) || isPlaceholderTeam(src.awayTeam)) return undefined;
+    const homeScore = src.homePens ?? src.homeScore;
+    const awayScore = src.awayPens ?? src.awayScore;
+    if (typeof homeScore !== "number" || typeof awayScore !== "number" || homeScore === awayScore) return undefined;
+    const homeWon = homeScore > awayScore;
+    return wantWinner === homeWon ? src.homeTeam : src.awayTeam;
+  }
+
+  return matches.map((m) => {
+    const needsHome = isPlaceholderTeam(m.homeTeam);
+    const needsAway = isPlaceholderTeam(m.awayTeam);
+    if (!needsHome && !needsAway) return m;
+    const resolvedHome = needsHome ? (derive(m.homeTeam) ?? m.homeTeam) : m.homeTeam;
+    const resolvedAway = needsAway ? (derive(m.awayTeam) ?? m.awayTeam) : m.awayTeam;
+    if (resolvedHome === m.homeTeam && resolvedAway === m.awayTeam) return m;
+    return { ...m, homeTeam: resolvedHome, awayTeam: resolvedAway };
   });
 }
