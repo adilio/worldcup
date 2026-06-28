@@ -109,7 +109,11 @@ describe("mergeMatches — join keys", () => {
     expect(out.providerId).toBe("537408");
   });
 
-  it("does not team-name join unresolved static placeholders", () => {
+  it("resolves live data onto placeholder-team knockout matches by exact kickoff when no venue or match number", () => {
+    // football-data.org omits FIFA match numbers and sometimes venue for WC
+    // knockout rounds. The static spine has placeholder team names ("1A", "2B")
+    // until teams are resolved. All three primary joins fail; the exact-kickoff
+    // fallback (join 4) should still merge the score and resolve the team names.
     const spine = [
       m({
         id: "static-ko",
@@ -136,6 +140,47 @@ describe("mergeMatches — join keys", () => {
 
     const [out] = mergeMatches(spine, live);
 
+    expect(out.status).toBe("finished");
+    expect(out.homeScore).toBe(2);
+    expect(out.awayScore).toBe(1);
+    // Team names should be resolved from the live provider.
+    expect(out.homeTeam).toBe("Canada");
+    expect(out.awayTeam).toBe("Brazil");
+    // Venue must still come from the static spine.
+    expect(out.stadiumId).toBe("bc-place");
+  });
+
+  it("does not apply the kickoff fallback when static teams are real names", () => {
+    // The kickoff fallback is only for placeholder teams; real-name static
+    // matches must still go through the venue+date or team-slot paths.
+    const spine = [
+      m({
+        id: "static-real",
+        matchNumber: undefined,
+        stadiumId: "lumen",
+        kickoffUtc: "2026-07-03T23:30:00.000Z",
+        homeTeam: "Argentina",
+        awayTeam: "Germany",
+      }),
+    ];
+    const live = [
+      m({
+        id: "live-different",
+        matchNumber: undefined,
+        stadiumId: "unknown",
+        kickoffUtc: "2026-07-03T23:30:00.000Z",
+        homeTeam: "Canada",
+        awayTeam: "Brazil",
+        status: "finished",
+        homeScore: 3,
+        awayScore: 0,
+      }),
+    ];
+
+    const [out] = mergeMatches(spine, live);
+
+    // Should not match — real-name static match has a different venue; the
+    // kickoff fallback is gated on placeholder teams.
     expect(out.status).toBe("scheduled");
     expect(out.homeScore).toBeUndefined();
   });

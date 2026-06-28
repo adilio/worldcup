@@ -77,6 +77,11 @@ function buildLiveIndex(live: Match[]) {
   const byNumber = new Map<number, Match>();
   const byVenueDate = new Map<string, Indexed[]>();
   const byTeamSlot = new Map<string, Match>();
+  // Exact UTC kickoff → live match. Used as a last resort for knockout matches
+  // whose static spine still has placeholder team names (e.g. "1A", "Winner Group A")
+  // when the live provider has no match number and no venue. World Cup knockout
+  // matches are never co-scheduled at the exact same UTC time, so this key is safe.
+  const byKickoffUtc = new Map<string, Match>();
   live.forEach((m, index) => {
     if (typeof m.matchNumber === "number") byNumber.set(m.matchNumber, m);
     if (m.stadiumId && m.stadiumId !== "unknown") {
@@ -87,8 +92,13 @@ function buildLiveIndex(live: Match[]) {
     }
     const teamKey = teamSlotKey(m);
     if (teamKey && (!m.stadiumId || m.stadiumId === "unknown")) byTeamSlot.set(teamKey, m);
+    if (m.kickoffUtc) {
+      try {
+        byKickoffUtc.set(new Date(m.kickoffUtc).toISOString(), m);
+      } catch { /* ignore unparseable dates */ }
+    }
   });
-  return { byNumber, byVenueDate, byTeamSlot };
+  return { byNumber, byVenueDate, byTeamSlot, byKickoffUtc };
 }
 
 function findLiveMatch(
@@ -123,6 +133,19 @@ function findLiveMatch(
   // team names match after provider-name normalization.
   const teamKey = teamSlotKey(staticMatch);
   if (teamKey) return index.byTeamSlot.get(teamKey);
+
+  // 4. Exact-kickoff fallback for unresolved placeholder-team knockout matches.
+  // Triggered when football-data.org returns neither a FIFA match number nor a
+  // venue (both are absent on the free tier for WC knockout rounds), and the
+  // static spine still has placeholder team names so step 3 cannot apply.
+  // Safe because WC knockout matches are never co-scheduled at the same UTC time.
+  if (isPlaceholderTeam(staticMatch.homeTeam) || isPlaceholderTeam(staticMatch.awayTeam)) {
+    try {
+      const kickoffKey = new Date(staticMatch.kickoffUtc).toISOString();
+      const hit = index.byKickoffUtc.get(kickoffKey);
+      if (hit) return hit;
+    } catch { /* ignore */ }
+  }
 
   return undefined;
 }

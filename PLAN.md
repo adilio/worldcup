@@ -25,7 +25,7 @@ The first version stays intentionally lean. It avoids accounts, databases, paid 
 * No login.
 * No database for v1.
 * No paid dependencies.
-* Default to BC Place.
+* ~~Default to BC Place.~~ Superseded: the app now defaults to All stadiums by owner choice (see Build Progress). Venue-first design is unchanged.
 * Always show stadium on match cards.
 * The app stays useful even if every live score API fails.
 
@@ -38,7 +38,7 @@ The first version stays intentionally lean. It avoids accounts, databases, paid 
 | Hosting | Netlify |
 | Frontend | Vite + Preact + TypeScript |
 | Backend | Netlify Functions |
-| Default stadium | BC Place |
+| Default stadium | All stadiums (owner decision; was BC Place) |
 | API policy | Free-only APIs |
 | Data approach | Static schedule spine, live score enhancement on top |
 | Source of truth for fixtures | Static schedule committed to the repo |
@@ -308,13 +308,13 @@ Verify stadium names and timezones against the final schedule before launch. FIF
 
 ## Stadium Preference
 
-Default stadium: BC Place
+Default stadium: **All stadiums** (owner decision; the plan originally specified BC Place — see the Build Progress divergence note). `DEFAULT_STADIUM_ID = "all"`.
 
 Local storage key: `4dl-wc2026-preferred-stadium`
 
-Example value: `bc-place`
+Example stored value: `bc-place` (any specific stadium) or `all`.
 
-The app includes an All stadiums option, but the default experience remains BC Place.
+The selector still leads with Vancouver (BC Place) and the venue-first design is unchanged; only the initial view defaults to all stadiums rather than one.
 
 ## Match Card Requirements
 
@@ -473,7 +473,21 @@ Only configure the providers actively in use. Do not wire API-Football until tes
 
 Living status log, updated as the build proceeds.
 
-**Current status (2026-06-27):** Phases 1–3 complete; Phase 4 in progress. 21 tests passing, `tsc` clean, `vite build` green (≈10.7 kB gzip JS). All four data layers verified end-to-end. Committed and pushed to `main`. Remaining: optional Phase 4 items, deploy (Netlify env + domain), and issue #30 (verify football-data.org `venue` field with a real token).
+**Current status (2026-06-27):** Live in production at **worldcup.4dl.ca** (Netlify deploy + Cloudflare domain done). Phases 1–3 complete; Phase 4 ongoing with several owner-chosen feature adds beyond the original plan. 30 tests passing, `tsc` clean, `vite build` green. All four data layers verified end-to-end. Committed and pushed to `main`.
+
+Remaining: issue #30 (verify football-data.org `venue` field with a real token, in production), plus optional Phase 4 polish.
+
+**Deliberate divergences from the original plan (owner decisions, not drift):**
+
+* **Default stadium is now "All stadiums," not BC Place.** Chosen by the owner. The selector still leads with Vancouver (BC Place) and the venue-first design is unchanged; only the initial view differs. `DEFAULT_STADIUM_ID = "all"`. The "Default to BC Place" guiding principle below is superseded by this choice.
+* **Default tab is "Today,"** so the app opens on the day's matches across all stadiums.
+* **Canada-only quick filter was removed** (was added, then pulled). The stadium selector already covers following a city; the extra chip was redundant.
+* **Knockout bracket view added** as its own tab, with connector lines between rounds.
+* **Live-match polish:** elapsed-time / stoppage-time indicators in the hero and cards; a scored match is treated as finished when the provider status lags.
+* **Team flags/marks** (`src/lib/teamMarks.ts`) and a refreshed match UI.
+* **Social share card:** `public/og-card.png` + OpenGraph metadata for link previews.
+
+These supersede the corresponding "Should Have / Nice to Have / guiding principle" lines where they conflict; the original text is kept below for history.
 
 ### Phase 1: Static App — ✅ Complete
 
@@ -518,9 +532,15 @@ Added this pass (knockout-readiness):
 Knockout/tournament-relevant items pulled forward:
 
 * Penalty shootout display ✅ (see Phase 3 pass).
-* Canada quick filter ✅ — "🇨🇦 Canada only" chip in the controls row; composes on top of the stadium filter (stadium → Canada → status tab) so a user can follow Canada across every stadium. Persisted in localStorage (`4dl-wc2026-canada-only`). Verified against real data: Canada has 4 matches across 3 stadiums (2 at BC Place). 2 new tests (suite now 21 total).
+* Canada quick filter — added, then **removed** by owner decision (commit `142c2a2`). The stadium selector already lets a user follow a city, so the chip was redundant. Its tests were removed with it.
+* Knockout bracket view ✅ — dedicated tab (`BracketView.tsx`) rendering the round_of_32 → final path with connector lines between rounds.
+* Team flags / marks ✅ — `src/lib/teamMarks.ts`, surfaced on cards and tabs.
+* Live elapsed / stoppage-time indicators ✅, plus a "scored ⇒ finished" guard for when the provider status lags behind the score.
+* Social share card ✅ — `public/og-card.png` and OpenGraph metadata for link previews.
 
-Repo-readiness (this pass): real `README.md` (was a placeholder), `*.tsbuildinfo` added to `.gitignore`.
+Repo-readiness: real `README.md` (was a placeholder), `*.tsbuildinfo` added to `.gitignore`.
+
+Suite is now **30 tests** passing (up from 21).
 
 ### Phase 1: Static App
 
@@ -592,16 +612,23 @@ Exit criteria:
 
 Goal: add useful features without bloat.
 
-1. Canada quick filter. ✅
-2. Favourite team filter.
-3. Group standings.
+1. Canada quick filter. ❌ Removed by owner decision (redundant with the stadium selector).
+2. Favourite team filter. (not built)
+3. Group standings. (not built)
 4. Scorers, if the provider supports them on free. ✅ (shown on cards when present)
 5. Penalties display. ✅
-6. Host city resource links.
-7. Transit links.
-8. Stadium policy links.
-9. Fan festival links.
-10. Weather link for the selected stadium city.
+6. Host city resource links. (not built)
+7. Transit links. (not built)
+8. Stadium policy links. (not built)
+9. Fan festival links. (not built)
+10. Weather link for the selected stadium city. (not built)
+
+Added beyond the original Phase 4 list (owner choices):
+
+11. Knockout bracket view (own tab). ✅
+12. Team flags / marks. ✅
+13. Live elapsed / stoppage-time indicators. ✅
+14. Social share card (og-card.png + OpenGraph metadata). ✅
 
 ## Feature Backlog
 
@@ -691,9 +718,9 @@ Goal: add useful features without bloat.
 25. Add share button
 26. Add calendar button
 27. Add PWA manifest
-28. Deploy to Netlify
-29. Configure worldcup.4dl.ca
-30. Verify football-data.org venue field is populated for WC matches
+28. Deploy to Netlify ✅ (live)
+29. Configure worldcup.4dl.ca ✅ (domain set in Cloudflare, live)
+30. Verify football-data.org venue field is populated for WC matches — ⏳ open (verify against the production token)
 
 ## Risks and Caveats
 

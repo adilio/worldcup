@@ -79,6 +79,11 @@ export default async function handler(): Promise<Response> {
   };
 
   const maxAge = cacheSeconds(merged);
+  const hasLive = merged.some((m) => isLive(m.status));
+  // stale-while-revalidate: keep low during live matches so the CDN doesn't
+  // serve stale scores for an extra 60s on top of the s-maxage window.
+  // For non-live states the higher value is fine (freshness matters less).
+  const swr = hasLive ? 10 : 60;
   return new Response(JSON.stringify(body), {
     status: 200,
     headers: {
@@ -86,7 +91,7 @@ export default async function handler(): Promise<Response> {
       // Decouple the client poll rate from the upstream rate limit: the CDN
       // serves cached responses, keeping upstream calls well under 10/min.
       "cache-control": "public, no-cache",
-      "netlify-cdn-cache-control": `public, durable, s-maxage=${maxAge}, stale-while-revalidate=60`,
+      "netlify-cdn-cache-control": `public, durable, s-maxage=${maxAge}, stale-while-revalidate=${swr}`,
     },
   });
 }
