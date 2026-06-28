@@ -7,7 +7,7 @@ import {
   hasScore,
   hasPens,
 } from "../lib/matchStatus.ts";
-import { dualTime, dateHeading, formatTime } from "../lib/formatDate.ts";
+import { dualTime, dateHeading } from "../lib/formatDate.ts";
 import { downloadIcs } from "../lib/calendar.ts";
 import { shareMatch, canShare } from "../lib/share.ts";
 import { teamMark } from "../lib/teamMarks.ts";
@@ -31,10 +31,8 @@ export function MatchCard({ match, noSpoiler, hero = false }: Props) {
   let scoreLine: string;
   if (noSpoiler && (hasScore(match) || match.status === "finished")) {
     scoreLine = "Score hidden";
-  } else if (showScore) {
-    scoreLine = `${match.homeScore}–${match.awayScore}${pens}`;
   } else {
-    scoreLine = formatTime(match.kickoffUtc);
+    scoreLine = `${match.homeScore}–${match.awayScore}${pens}`;
   }
 
   const statusText = noSpoiler && match.status === "finished" ? "" : statusLabel(match);
@@ -61,10 +59,7 @@ export function MatchCard({ match, noSpoiler, hero = false }: Props) {
           {showScore ? (
             <span class="match-card__score match-card__score--has">{scoreLine}</span>
           ) : (
-            <>
-              <span class="match-card__kickoff">{scoreLine}</span>
-              <span class="match-card__vs">vs</span>
-            </>
+            <span class="match-card__vs">vs</span>
           )}
         </div>
 
