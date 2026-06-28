@@ -27,7 +27,8 @@ export const STADIUMS: Stadium[] = [
   { id: "bbva", name: "Estadio BBVA", city: "Monterrey", country: "Mexico", timezone: "America/Monterrey" },
 ];
 
-export const DEFAULT_STADIUM_ID = "bc-place";
-
 /** Sentinel id for the "All stadiums" option in the selector. */
 export const ALL_STADIUMS_ID = "all";
+
+/** Default selection: show every stadium unless the user picks one. */
+export const DEFAULT_STADIUM_ID = ALL_STADIUMS_ID;
