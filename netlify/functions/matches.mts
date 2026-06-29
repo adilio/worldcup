@@ -1,6 +1,6 @@
 import staticData from "../../public/data/world-cup-2026-static.json" with { type: "json" };
 import type { Match, MatchesResponse } from "../../src/lib/types.ts";
-import { mergeMatches, resolveKnockoutTeams } from "../../src/lib/mergeMatches.ts";
+import { mergeMatches, resolveKnockoutTeams, isPlaceholderTeam } from "../../src/lib/mergeMatches.ts";
 import { normalizeFootballData, type FdResponse } from "../../src/lib/footballData.ts";
 import { normalizeOpenfootball, type OfFile } from "../../src/lib/openfootball.ts";
 import { isLive } from "../../src/lib/matchStatus.ts";
@@ -14,7 +14,17 @@ const OF_LIVE_URL =
   process.env.OPENFOOTBALL_LIVE_URL ??
   "https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json";
 
-const SPINE: Match[] = (staticData as { matches: Match[] }).matches;
+const RAW_SPINE: Match[] = (staticData as { matches: Match[] }).matches;
+
+// Preserve the original W{N}/L{N} bracket slot codes on each knockout match so that
+// even after live data resolves team names (e.g. "W73" → "Canada") the BracketView
+// can still reconstruct the correct visual bracket ordering.
+const SPINE: Match[] = RAW_SPINE.map((m) => {
+  if (m.stage === "group") return m;
+  const homeSlot = isPlaceholderTeam(m.homeTeam) ? m.homeTeam : undefined;
+  const awaySlot = isPlaceholderTeam(m.awayTeam) ? m.awayTeam : undefined;
+  return homeSlot || awaySlot ? { ...m, homeSlot, awaySlot } : m;
+});
 
 type LiveResult = { matches: Match[]; source: string } | null;
 

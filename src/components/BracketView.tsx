@@ -3,11 +3,62 @@ import { formatTime, formatDateShort } from "../lib/formatDate.ts";
 import { hasPens, hasScore, isLive, statusLabel } from "../lib/matchStatus.ts";
 import { sortByKickoff } from "../lib/matches.ts";
 import { teamMark } from "../lib/teamMarks.ts";
+import { isPlaceholderTeam } from "../lib/mergeMatches.ts";
 
 type Props = {
   matches: Match[];
   noSpoiler: boolean;
 };
+
+/** Extracts the match number from a bracket slot code like "W73" or "L12". */
+function slotMatchNum(slot: string | undefined): number | undefined {
+  if (!slot) return undefined;
+  const m = /^[wl](\d{1,3})$/i.exec(slot);
+  return m ? Number(m[1]) : undefined;
+}
+
+/**
+ * Returns a map from match.id to display position so that matches feeding into
+ * the same next-round slot are always rendered adjacent to each other.
+ * Derived top-down: Final → SF → QF → R16 → R32.
+ */
+function bracketPositions(knockout: Match[]): Map<string, number> {
+  const STAGES: Stage[] = ["round_of_32", "round_of_16", "quarter_final", "semi_final", "final"];
+  const pos = new Map<string, number>();
+
+  // Seed the final by kickoff order.
+  sortByKickoff(knockout.filter((m) => m.stage === "final")).forEach((m, i) =>
+    pos.set(m.id, i),
+  );
+
+  // Walk from semi_final down to round_of_32.
+  for (let si = STAGES.length - 2; si >= 0; si--) {
+    const curr = knockout.filter((m) => m.stage === STAGES[si]);
+    const next = knockout.filter((m) => m.stage === STAGES[si + 1]);
+
+    // Sort next-stage matches by their already-computed position.
+    const sortedNext = [...next].sort(
+      (a, b) => (pos.get(a.id) ?? Infinity) - (pos.get(b.id) ?? Infinity),
+    );
+
+    const byNum = new Map(
+      curr.filter((m) => m.matchNumber != null).map((m) => [m.matchNumber!, m]),
+    );
+
+    sortedNext.forEach((nm, ni) => {
+      // Use the preserved slot code if the team name was already resolved; otherwise
+      // fall back to the current homeTeam/awayTeam if they are still placeholders.
+      const hSlot = nm.homeSlot ?? (isPlaceholderTeam(nm.homeTeam) ? nm.homeTeam : undefined);
+      const aSlot = nm.awaySlot ?? (isPlaceholderTeam(nm.awayTeam) ? nm.awayTeam : undefined);
+      const hNum = slotMatchNum(hSlot);
+      const aNum = slotMatchNum(aSlot);
+      if (hNum != null && byNum.has(hNum)) pos.set(byNum.get(hNum)!.id, ni * 2);
+      if (aNum != null && byNum.has(aNum)) pos.set(byNum.get(aNum)!.id, ni * 2 + 1);
+    });
+  }
+
+  return pos;
+}
 
 const MAIN_BRACKET_STAGES: { id: Stage; label: string; step: number }[] = [
   { id: "round_of_32", label: "Round of 32", step: 1 },
@@ -89,12 +140,20 @@ export function BracketView({ matches, noSpoiler }: Props) {
   const knockout = matches.filter((m) => m.stage !== "group");
   if (!knockout.length) return null;
   const thirdPlace = sortByKickoff(knockout.filter((m) => m.stage === "third_place"));
+  const posMap = bracketPositions(knockout);
 
   return (
     <>
       <div class="bracket-view" aria-label="World Cup knockout bracket">
         {MAIN_BRACKET_STAGES.map(({ id, label, step }) => {
-          const roundMatches = sortByKickoff(knockout.filter((m) => m.stage === id));
+          const roundMatches = knockout
+            .filter((m) => m.stage === id)
+            .sort((a, b) => {
+              const pa = posMap.get(a.id) ?? Infinity;
+              const pb = posMap.get(b.id) ?? Infinity;
+              if (pa !== pb) return pa - pb;
+              return new Date(a.kickoffUtc).getTime() - new Date(b.kickoffUtc).getTime();
+            });
           if (!roundMatches.length) return null;
           return (
             <section

@@ -47,6 +47,9 @@ export type Match = {
   country: string;
   scorers?: string[];
   lastUpdated?: string;
+  /** Original bracket slot code (e.g. "W73"), preserved after team name is resolved. */
+  homeSlot?: string;
+  awaySlot?: string;
 };
 
 /** Response envelope from the Netlify matches function. */
