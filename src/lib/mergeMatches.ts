@@ -183,9 +183,11 @@ function decorate(staticMatch: Match, live: Match): Match {
   // Resolve placeholder team names from the live provider, but never replace a
   // real static name with a live placeholder.
   if (isPlaceholderTeam(staticMatch.homeTeam) && !isPlaceholderTeam(live.homeTeam)) {
+    if (!merged.homeSlot) merged.homeSlot = staticMatch.homeTeam;
     merged.homeTeam = live.homeTeam;
   }
   if (isPlaceholderTeam(staticMatch.awayTeam) && !isPlaceholderTeam(live.awayTeam)) {
+    if (!merged.awaySlot) merged.awaySlot = staticMatch.awayTeam;
     merged.awayTeam = live.awayTeam;
   }
 
@@ -235,6 +237,12 @@ export function resolveKnockoutTeams(matches: Match[]): Match[] {
     const resolvedHome = needsHome ? (derive(m.homeTeam) ?? m.homeTeam) : m.homeTeam;
     const resolvedAway = needsAway ? (derive(m.awayTeam) ?? m.awayTeam) : m.awayTeam;
     if (resolvedHome === m.homeTeam && resolvedAway === m.awayTeam) return m;
-    return { ...m, homeTeam: resolvedHome, awayTeam: resolvedAway };
+    return {
+      ...m,
+      homeTeam: resolvedHome,
+      awayTeam: resolvedAway,
+      homeSlot: needsHome && resolvedHome !== m.homeTeam && !m.homeSlot ? m.homeTeam : m.homeSlot,
+      awaySlot: needsAway && resolvedAway !== m.awayTeam && !m.awaySlot ? m.awayTeam : m.awaySlot,
+    };
   });
 }

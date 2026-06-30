@@ -18,6 +18,50 @@ import { dirname, resolve } from "node:path";
 // Node >=23.6 strips TS types on import, so the seed reuses the exact same
 // conversion + venue map the app and Netlify function use — no duplication.
 import { convertOfMatch } from "../src/lib/openfootball.ts";
+import { isPlaceholderTeam } from "../src/lib/mergeMatches.ts";
+
+const SLOT_RE = /^[WwLl](\d{1,3})$/;
+
+/**
+ * When openfootball pre-resolves a knockout team name (e.g. "Canada" instead
+ * of "W73"), the slot code linking that match to the previous round is lost.
+ * This function infers and re-attaches the missing homeSlot/awaySlot by
+ * finding which previous-round match number isn't referenced by any explicit
+ * slot code in the current round.
+ */
+function inferKnockoutSlots(matches) {
+  const STAGE_ORDER = ["round_of_32", "round_of_16", "quarter_final", "semi_final", "final"];
+  for (let si = 1; si < STAGE_ORDER.length; si++) {
+    const curr = matches.filter((m) => m.stage === STAGE_ORDER[si]);
+    const prevNums = new Set(
+      matches.filter((m) => m.stage === STAGE_ORDER[si - 1]).map((m) => m.matchNumber).filter((n) => n != null),
+    );
+
+    // Collect all prev-round match numbers already referenced as "W{n}" slot codes.
+    const referenced = new Set();
+    for (const m of curr) {
+      for (const team of [m.homeTeam, m.awayTeam, m.homeSlot, m.awaySlot]) {
+        const hit = team && SLOT_RE.exec(team);
+        if (hit) referenced.add(Number(hit[1]));
+      }
+    }
+
+    const unreferenced = [...prevNums].filter((n) => !referenced.has(n)).sort((a, b) => a - b);
+    if (!unreferenced.length) continue;
+
+    for (const m of curr) {
+      const homeReal = !isPlaceholderTeam(m.homeTeam);
+      const awayReal = !isPlaceholderTeam(m.awayTeam);
+      if (homeReal && !m.homeSlot && !awayReal && unreferenced.length === 1) {
+        m.homeSlot = `W${unreferenced.shift()}`;
+        console.log(`  inferred homeSlot=${m.homeSlot} for match ${m.matchNumber} (${m.homeTeam})`);
+      } else if (awayReal && !m.awaySlot && !homeReal && unreferenced.length === 1) {
+        m.awaySlot = `W${unreferenced.shift()}`;
+        console.log(`  inferred awaySlot=${m.awaySlot} for match ${m.matchNumber} (${m.awayTeam})`);
+      }
+    }
+  }
+}
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, "..");
@@ -63,6 +107,8 @@ async function main() {
       problems.push(`No matchNumber for ${m.stage} ${m.homeTeam} v ${m.awayTeam}`);
     }
   }
+
+  inferKnockoutSlots(matches);
 
   matches.sort((a, b) => (a.kickoffUtc < b.kickoffUtc ? -1 : a.kickoffUtc > b.kickoffUtc ? 1 : 0));
 

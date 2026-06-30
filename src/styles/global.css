@@ -599,8 +599,7 @@ button {
 .bracket-round {
   min-width: 260px;
   --slot-h: 122px;
-  --slot-gap: 10px;
-  --round-gap: calc((var(--round-step) - 1) * (var(--slot-h) + var(--slot-gap)));
+  --round-gap: calc((var(--round-step) - 1) * var(--slot-h));
 }
 
 .bracket-round__title {
@@ -644,13 +643,13 @@ button {
 
 .bracket-round:not(:last-child) .bracket-slot:nth-child(odd)::before {
   top: 50%;
-  height: calc((var(--round-step) * (var(--slot-h) + var(--slot-gap))) / 2);
+  height: calc(var(--round-step) * var(--slot-h) / 2);
   border-top: 1px solid var(--border);
 }
 
 .bracket-round:not(:last-child) .bracket-slot:nth-child(even)::before {
   bottom: 50%;
-  height: calc((var(--round-step) * (var(--slot-h) + var(--slot-gap))) / 2);
+  height: calc(var(--round-step) * var(--slot-h) / 2);
   border-bottom: 1px solid var(--border);
 }
 
