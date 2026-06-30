@@ -14,10 +14,14 @@ import { normalizeVenue, getStadium } from "./stadiums.ts";
  */
 
 type FdTeam = { id?: number; name?: string; shortName?: string; tla?: string };
+type FdHalf = { home?: number | null; away?: number | null };
 type FdScore = {
-  fullTime?: { home?: number | null; away?: number | null };
-  halfTime?: { home?: number | null; away?: number | null };
-  penalties?: { home?: number | null; away?: number | null };
+  duration?: string;
+  fullTime?: FdHalf;
+  halfTime?: FdHalf;
+  regularTime?: FdHalf;
+  extraTime?: FdHalf;
+  penalties?: FdHalf;
 };
 type FdMatch = {
   id?: number;
@@ -97,8 +101,37 @@ export function normalizeFootballData(data: FdResponse): Match[] {
     const stadium = getStadium(stadiumId);
     const home = m.homeTeam?.name ?? m.homeTeam?.shortName ?? "TBD";
     const away = m.awayTeam?.name ?? m.awayTeam?.shortName ?? "TBD";
-    const homeScore = num(m.score?.fullTime?.home);
-    const awayScore = num(m.score?.fullTime?.away);
+    // For penalty shootout matches, football-data.org puts the cumulative total
+    // (regulation + ET + penalty goals) in fullTime, but its penalties field
+    // contains the number of kicks attempted (equal for both sides, so useless
+    // for determining the winner). Derive the correct values instead:
+    //   homeScore = regularTime + extraTime  (score at end of 120 min)
+    //   homePens  = fullTime - homeScore     (actual penalty goals scored)
+    const isPenaltyShootout = m.score?.duration === "PENALTY_SHOOTOUT";
+    const regH = num(m.score?.regularTime?.home);
+    const regA = num(m.score?.regularTime?.away);
+    const etH = num(m.score?.extraTime?.home) ?? 0;
+    const etA = num(m.score?.extraTime?.away) ?? 0;
+    const ftH = num(m.score?.fullTime?.home);
+    const ftA = num(m.score?.fullTime?.away);
+
+    let homeScore: number | undefined;
+    let awayScore: number | undefined;
+    let homePens: number | undefined;
+    let awayPens: number | undefined;
+
+    if (isPenaltyShootout && regH !== undefined && regA !== undefined && ftH !== undefined && ftA !== undefined) {
+      homeScore = regH + etH;
+      awayScore = regA + etA;
+      homePens = ftH - homeScore;
+      awayPens = ftA - awayScore;
+    } else {
+      homeScore = ftH;
+      awayScore = ftA;
+      homePens = num(m.score?.penalties?.home);
+      awayPens = num(m.score?.penalties?.away);
+    }
+
     const providerStatus = mapStatus(m.status);
     // football-data.org sometimes publishes the full-time score before it flips
     // the status off SCHEDULED/TIMED. A full-time score is definitive for a match
@@ -118,8 +151,8 @@ export function normalizeFootballData(data: FdResponse): Match[] {
       awayTeam: away,
       homeScore,
       awayScore,
-      homePens: num(m.score?.penalties?.home),
-      awayPens: num(m.score?.penalties?.away),
+      homePens,
+      awayPens,
       status,
       kickoffUtc: m.utcDate ?? "",
       stadium: stadium?.name ?? m.venue ?? "",

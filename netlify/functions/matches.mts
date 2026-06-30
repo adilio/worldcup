@@ -70,16 +70,35 @@ function cacheSeconds(matches: Match[]): number {
 }
 
 export default async function handler(): Promise<Response> {
-  // Layer 1 is always present (bundled). Decorate with the best live source.
-  let live = await tryFootballData();
-  if (!live) live = await tryOpenfootballMirror();
+  // Fetch both providers in parallel. FD is the primary source; openfootball
+  // supplements it for knockout rounds where FD lacks FIFA match numbers and
+  // sometimes returns incorrect penalty data. When FD fails entirely, openfootball
+  // takes over as the sole live source (same behaviour as before).
+  const [fdLive, ofLive] = await Promise.all([tryFootballData(), tryOpenfootballMirror()]);
 
-  const merged = live
-    ? mergeMatches(SPINE, live.matches)
+  let liveMatches: Match[];
+  if (fdLive) {
+    // FD succeeded: combine its matches with openfootball's finished knockout
+    // matches. OF carries FIFA matchNumbers for knockout rounds (which FD omits),
+    // so buildLiveIndex puts them in the byNumber map. findLiveMatch tries byNumber
+    // first, so openfootball's correct penalty scores fill in where FD's data is
+    // wrong or ambiguous. We filter to status="finished" to avoid overriding FD's
+    // live/in-play status with stale "scheduled" data when OF hasn't updated yet.
+    liveMatches = [
+      ...fdLive.matches,
+      ...(ofLive?.matches.filter((m) => m.matchNumber != null && m.status === "finished") ?? []),
+    ];
+  } else {
+    // FD failed: fall back to openfootball alone (all matches, not just knockout).
+    liveMatches = ofLive?.matches ?? [];
+  }
+
+  const merged = liveMatches.length > 0
+    ? mergeMatches(SPINE, liveMatches)
     : resolveKnockoutTeams(SPINE.map((m) => ({ ...m })));
-  const source = live ? live.source : "static schedule";
+  const source = fdLive ? fdLive.source : (ofLive ? ofLive.source : "static schedule");
   // Primary live source is football-data.org; anything else is a fallback path.
-  const fallbackUsed = source !== "football-data.org";
+  const fallbackUsed = !fdLive;
 
   const body: MatchesResponse = {
     app: APP_NAME,

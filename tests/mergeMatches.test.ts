@@ -452,6 +452,37 @@ describe("football-data.org adapter — status mapping", () => {
     expect(out[0]!.stadiumId).toBe("att");
   });
 
+  it("derives penalty goals from fullTime-regularTime-extraTime when duration=PENALTY_SHOOTOUT", () => {
+    // FD real-world format: score.penalties holds kicks attempted (always equal),
+    // score.fullTime is cumulative (regulation + ET + penalty goals).
+    // Regression: match 74 (Germany vs Paraguay) had penalties={4,4} and fullTime={4,5},
+    // so the old code produced homePens=awayPens=4 → derive() returned undefined → bracket stuck.
+    const out = normalizeFootballData({
+      matches: [
+        {
+          id: 537415,
+          utcDate: "2026-06-29T20:30:00Z",
+          status: "FINISHED",
+          stage: "LAST_32",
+          homeTeam: { name: "Germany" },
+          awayTeam: { name: "Paraguay" },
+          score: {
+            duration: "PENALTY_SHOOTOUT",
+            fullTime: { home: 4, away: 5 },
+            regularTime: { home: 1, away: 1 },
+            extraTime: { home: 0, away: 0 },
+            penalties: { home: 4, away: 4 },
+          },
+        },
+      ],
+    });
+    expect(out[0]!.homeScore).toBe(1);
+    expect(out[0]!.awayScore).toBe(1);
+    expect(out[0]!.homePens).toBe(3);
+    expect(out[0]!.awayPens).toBe(4);
+    expect(out[0]!.status).toBe("finished");
+  });
+
   it("treats a scored match as finished when the provider status lags as SCHEDULED", () => {
     const out = normalizeFootballData({
       matches: [
