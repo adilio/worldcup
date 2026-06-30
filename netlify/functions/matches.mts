@@ -19,10 +19,12 @@ const RAW_SPINE: Match[] = (staticData as { matches: Match[] }).matches;
 // Preserve the original W{N}/L{N} bracket slot codes on each knockout match so that
 // even after live data resolves team names (e.g. "W73" → "Canada") the BracketView
 // can still reconstruct the correct visual bracket ordering.
+// Prefer an explicit homeSlot/awaySlot already stored in the static JSON (set by
+// the seed script for pre-resolved teams); fall back to the placeholder team name.
 const SPINE: Match[] = RAW_SPINE.map((m) => {
   if (m.stage === "group") return m;
-  const homeSlot = isPlaceholderTeam(m.homeTeam) ? m.homeTeam : undefined;
-  const awaySlot = isPlaceholderTeam(m.awayTeam) ? m.awayTeam : undefined;
+  const homeSlot = m.homeSlot || (isPlaceholderTeam(m.homeTeam) ? m.homeTeam : undefined);
+  const awaySlot = m.awaySlot || (isPlaceholderTeam(m.awayTeam) ? m.awayTeam : undefined);
   return homeSlot || awaySlot ? { ...m, homeSlot, awaySlot } : m;
 });
 
