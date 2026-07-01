@@ -31,6 +31,12 @@ const TABS: { id: FilterTab; label: string }[] = [
   { id: "results", label: "Results" },
   { id: "all", label: "All" },
 ];
+const TAB_IDS = new Set<FilterTab>(TABS.map((t) => t.id));
+
+function tabFromUrl(): FilterTab {
+  const raw = new URLSearchParams(window.location.search).get("tab");
+  return raw && TAB_IDS.has(raw as FilterTab) ? (raw as FilterTab) : "today";
+}
 
 // Polling cadence (ms) per the plan's conservative strategy.
 const POLL_LIVE = 30_000;
@@ -45,7 +51,7 @@ function pollInterval(stadiumMatches: Match[]): number {
 
 export function App() {
   const [stadiumId, setStadiumId] = useState<string>(loadPreferredStadium());
-  const [tab, setTab] = useState<FilterTab>("today");
+  const [tab, setTab] = useState<FilterTab>(tabFromUrl());
   const [noSpoiler, setNoSpoiler] = useState<boolean>(loadNoSpoiler());
 
   const [data, setData] = useState<MatchesResponse | null>(null);
@@ -92,6 +98,25 @@ export function App() {
     const id = setInterval(() => void load(), interval);
     return () => clearInterval(id);
   }, [data, stadiumMatches]);
+
+  // Keep the URL in sync with the active tab so it can be linked/shared, and
+  // support browser back/forward between tabs.
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (tab === "today") url.searchParams.delete("tab");
+    else url.searchParams.set("tab", tab);
+    if (url.href !== window.location.href) {
+      window.history.pushState({ tab }, "", url);
+    }
+  }, [tab]);
+
+  useEffect(() => {
+    function onPopState() {
+      setTab(tabFromUrl());
+    }
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
 
   function changeStadium(id: string) {
     setStadiumId(id);
