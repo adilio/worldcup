@@ -473,9 +473,11 @@ Only configure the providers actively in use. Do not wire API-Football until tes
 
 Living status log, updated as the build proceeds.
 
-**Current status (2026-06-27):** Live in production at **worldcup.4dl.ca** (Netlify deploy + Cloudflare domain done). Phases 1–3 complete; Phase 4 ongoing with several owner-chosen feature adds beyond the original plan. 30 tests passing, `tsc` clean, `vite build` green. All four data layers verified end-to-end. Committed and pushed to `main`.
+**Current status (2026-06-30):** Live in production at **worldcup.4dl.ca** (Netlify deploy + Cloudflare domain done). Phases 1–3 complete; Phase 4 ongoing with several owner-chosen feature adds beyond the original plan. 31 tests passing, `tsc` clean, `vite build` green. All four data layers verified end-to-end. Committed and pushed to `main`.
 
-Remaining: issue #30 (verify football-data.org `venue` field with a real token, in production), plus optional Phase 4 polish.
+Remaining: issue #30 (verify football-data.org `venue` field with a real token, in production), plus the proposed improvements below.
+
+**YAGNI review (2026-06-30):** The app is still lean and on-spec — no database, no auth, no speculative abstraction; components stay small (largest is `app.tsx` at ~230 lines) and the genuinely complex code (`mergeMatches`, `BracketView` positioning) is load-bearing, not speculative. Two dead exports were pruned (`elapsedLabel` in `matchStatus.ts`, `venueDateKey` in `formatDate.ts` — both unreferenced; `noUnusedLocals` doesn't catch unused *exports*, so they slipped through). One stale comment fixed. `README.md` refreshed to match current functionality. See "Proposed Improvements" for the follow-ups.
 
 **Deliberate divergences from the original plan (owner decisions, not drift):**
 
@@ -629,6 +631,51 @@ Added beyond the original Phase 4 list (owner choices):
 12. Team flags / marks. ✅
 13. Live elapsed / stoppage-time indicators. ✅
 14. Social share card (og-card.png + OpenGraph metadata). ✅
+
+## Proposed Improvements
+
+Curated from the 2026-06-30 review. Each is scored on value vs. the YAGNI cost of
+adding it. The point of the list is as much about what to **skip** as what to build.
+
+### Recommended (high value, low bloat)
+
+1. **Group standings table.** A tournament tracker that shows group letters but no
+   table is a real gap during the group stage. Computable entirely from data the app
+   already has — no new API — by tallying finished-match results (points, GD, GF)
+   per group. Surface it on the group/All view (e.g. a "Groups" tab or a section
+   above the group fixtures). Respects "no database, free APIs only." Medium effort,
+   one focused test on the points/tiebreak logic. _(Was P2, not built.)_
+
+2. **Follow a team.** The stadium selector lets a fan follow a *city*, but a team
+   plays across three group venues and then unknown knockout venues, so there's no
+   way to follow *Canada* or *Argentina* across the tournament. Add a team picker
+   (persisted like the stadium choice) that filters to a team's matches across all
+   stadiums, resolving through knockout slots as teams advance. Low effort, high
+   value for the core "what's next for my team" question. _(Was P2, not built.)_
+
+3. **Offline last-good response.** The PWA installs but has no offline data. Persist
+   the last successful function payload to `localStorage` and hydrate from it on load
+   (before the network resolves), with the existing "last checked" line making the
+   staleness honest. Completes the half-built offline story. Low effort. _(Was P2,
+   "offline-friendly last successful response.")_
+
+4. **Dead-export guard in CI.** The two pruned exports passed `tsc`/`noUnusedLocals`
+   because those only flag unused *locals*, not unused *exports*. Add a `knip` (or
+   `ts-prune`) check to `npm run` and CI so speculative code can't accumulate
+   silently. Keeps the codebase honest to its own YAGNI principle. Very low effort.
+
+### Deliberately deferred (YAGNI — skip for now)
+
+- **Host city / transit / stadium-policy / fan-festival / weather links (P3).** Real
+  content-maintenance burden (16 venues × several link types, all external and
+  drifting) for low core value. The app's job is fixtures, scores, and venue — these
+  dilute it. Revisit only if users ask.
+- **Scorers beyond what the free tier already gives.** Already shown when present;
+  don't build a dedicated scorers/lineups view — that's the "full player pages" line
+  that's explicitly out of scope.
+- **Favourite-team *quick chips* (à la the removed Canada chip).** The "follow a
+  team" picker above covers this without re-adding per-team chips that were pulled
+  once already as redundant.
 
 ## Feature Backlog
 

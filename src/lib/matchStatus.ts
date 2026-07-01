@@ -62,10 +62,6 @@ export function elapsedClock(m: Match, now: Date = new Date()): ElapsedClock | u
   return { label: "90+ min", description: "Estimated second-half stoppage time" };
 }
 
-export function elapsedLabel(m: Match, now: Date = new Date()): string | undefined {
-  return elapsedClock(m, now)?.label;
-}
-
 const STAGE_LABELS: Record<Stage, string> = {
   group: "Group",
   round_of_32: "Round of 32",

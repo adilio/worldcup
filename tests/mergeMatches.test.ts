@@ -8,7 +8,7 @@ import {
   groupByDate,
   sortLiveFirst,
 } from "../src/lib/matches.ts";
-import { elapsedClock, elapsedLabel } from "../src/lib/matchStatus.ts";
+import { elapsedClock } from "../src/lib/matchStatus.ts";
 
 function m(overrides: Partial<Match> = {}): Match {
   return {
@@ -316,16 +316,16 @@ describe("live elapsed labels", () => {
       kickoffUtc: "2026-06-27T23:30:00.000Z",
     });
 
-    expect(elapsedLabel(match, new Date("2026-06-27T23:30:00.000Z"))).toBe("1'");
-    expect(elapsedLabel(match, new Date("2026-06-28T00:05:00.000Z"))).toBe("36'");
-    expect(elapsedLabel(match, new Date("2026-06-28T00:18:00.000Z"))).toBe("45+ min");
-    expect(elapsedLabel(match, new Date("2026-06-28T01:00:00.000Z"))).toBe("76'");
+    expect(elapsedClock(match, new Date("2026-06-27T23:30:00.000Z"))?.label).toBe("1'");
+    expect(elapsedClock(match, new Date("2026-06-28T00:05:00.000Z"))?.label).toBe("36'");
+    expect(elapsedClock(match, new Date("2026-06-28T00:18:00.000Z"))?.label).toBe("45+ min");
+    expect(elapsedClock(match, new Date("2026-06-28T01:00:00.000Z"))?.label).toBe("76'");
   });
 
   it("uses HT for halftime and omits elapsed time outside live states", () => {
-    expect(elapsedLabel(m({ status: "halftime" }))).toBe("HT");
-    expect(elapsedLabel(m({ status: "scheduled" }))).toBeUndefined();
-    expect(elapsedLabel(m({ status: "finished" }))).toBeUndefined();
+    expect(elapsedClock(m({ status: "halftime" }))?.label).toBe("HT");
+    expect(elapsedClock(m({ status: "scheduled" }))?.label).toBeUndefined();
+    expect(elapsedClock(m({ status: "finished" }))?.label).toBeUndefined();
   });
 
   it("describes stoppage-time labels clearly", () => {

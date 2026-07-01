@@ -8,7 +8,7 @@ function isValidStadiumId(id: string | null): id is string {
   return !!id && (id === ALL_STADIUMS_ID || !!getStadium(id));
 }
 
-/** Read the preferred stadium id, defaulting to BC Place. */
+/** Read the preferred stadium id, defaulting to All stadiums. */
 export function loadPreferredStadium(): string {
   try {
     const stored = localStorage.getItem(STADIUM_KEY);

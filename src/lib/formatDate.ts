@@ -30,18 +30,6 @@ export function formatDateShort(iso: string, timeZone?: string): string {
   }).format(new Date(iso));
 }
 
-/** Stable YYYY-MM-DD key for grouping matches by venue-local date. */
-export function venueDateKey(iso: string, timeZone: string): string {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    timeZone,
-  }).formatToParts(new Date(iso));
-  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
-  return `${get("year")}-${get("month")}-${get("day")}`;
-}
-
 /** Human date heading, with Today/Tomorrow relative labels in user-local time. */
 export function dateHeading(iso: string, now: Date = new Date()): string {
   const d = new Date(iso);

@@ -1,7 +1,8 @@
 # 4dl World Cup 2026
 
-A simple, stadium-first World Cup 2026 match tracker. Defaults to **BC Place** in
-Vancouver; pick any host stadium to see its past, live, and upcoming matches.
+A simple, stadium-first World Cup 2026 match tracker. Opens on **All stadiums**
+(the selector leads with Vancouver / BC Place); pick any host stadium to see its
+past, live, and upcoming matches.
 
 Live at **worldcup.4dl.ca**.
 
@@ -11,6 +12,28 @@ It answers one question well: _what World Cup matches are happening at my
 preferred stadium, what's the score, and when's the next one?_ Static-first,
 live-enhanced, no login, no database, free APIs only. See [`PLAN.md`](./PLAN.md)
 for the full product spec.
+
+## Features
+
+- **Stadium selector** — city-led labels (`Vancouver (BC Place)`), plus an
+  All-stadiums view. The choice is saved in `localStorage`.
+- **Tabs** — Today, Bracket, Upcoming, Results, All. The active tab is written to
+  the URL (`?tab=…`) so any view is linkable and back/forward works.
+- **Hero card** — the live match, else the next kickoff, else the last result for
+  the selected stadium.
+- **Match cards** — home/away with team flags and FIFA ranking, score or kickoff,
+  status, stage/group, city + stadium, and dual **local + venue-local** times.
+- **Knockout bracket** — Round of 32 → Final with connector lines and a separate
+  third-place match; slots resolve as results come in.
+- **Live polish** — estimated elapsed/stoppage clock, and a "scored ⇒ finished"
+  guard for when the provider status lags the score.
+- **Penalty shootouts** — shown as `(4–3 pens)` on cards and in the bracket.
+- **No-spoiler mode** — hides scores and result states (also saved locally).
+- **Per-match actions** — native share (clipboard fallback) and add-to-calendar
+  (`.ics`).
+- **Installable PWA** with an OpenGraph share card for link previews.
+- **Graceful degradation** — the static schedule always renders, with a data-source
+  and last-checked status line.
 
 ## Data strategy
 
