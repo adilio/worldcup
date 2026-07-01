@@ -473,9 +473,11 @@ Only configure the providers actively in use. Do not wire API-Football until tes
 
 Living status log, updated as the build proceeds.
 
-**Current status (2026-06-30):** Live in production at **worldcup.4dl.ca** (Netlify deploy + Cloudflare domain done). Phases 1–3 complete; Phase 4 ongoing with several owner-chosen feature adds beyond the original plan. 31 tests passing, `tsc` clean, `vite build` green. All four data layers verified end-to-end. Committed and pushed to `main`.
+**Current status (2026-06-30):** Live in production at **worldcup.4dl.ca** (Netlify deploy + Cloudflare domain done). Phases 1–3 complete; Phase 4 ongoing with several owner-chosen feature adds beyond the original plan. All four "Recommended" improvements below are now built (see update note). 49 tests passing, `tsc` clean, `vite build` green, `knip` dead-export guard green. All four data layers verified end-to-end.
 
-Remaining: issue #30 (verify football-data.org `venue` field with a real token, in production), plus the proposed improvements below.
+Remaining: issue #30 (verify football-data.org `venue` field with a real token, in production).
+
+**Improvements pass (2026-06-30):** Shipped all four "Recommended" items below. (1) **Group standings** — `src/lib/standings.ts` tallies points/GD/GF per group from finished matches; `StandingsView` renders per-group tables behind a new "Groups" tab (hidden in no-spoiler mode). (2) **Follow a team** — persisted team picker (`TeamSelect`, `filterByTeam`/`teamsInMatches`) filters to a team's matches across all stadiums and follows it through the bracket as knockout slots resolve. (3) **Offline last-good response** — `loadLastResponse`/`saveLastResponse` persist the last function payload and hydrate on load. (4) **Dead-export guard** — `knip` (`npm run knip`, `--include exports,types`) wired into a new GitHub Actions CI workflow (`.github/workflows/ci.yml`: typecheck → knip → tests → build); the pass also pruned eight genuinely dead exports it surfaced (`buildIcs`, `timezoneAbbr`, `toStage`/`toGroup`/`toKickoffUtc`/`scorerNames`, `teamInitials`, and the unused `FIFA_RANKING_AS_OF`).
 
 **YAGNI review (2026-06-30):** The app is still lean and on-spec — no database, no auth, no speculative abstraction; components stay small (largest is `app.tsx` at ~230 lines) and the genuinely complex code (`mergeMatches`, `BracketView` positioning) is load-bearing, not speculative. Two dead exports were pruned (`elapsedLabel` in `matchStatus.ts`, `venueDateKey` in `formatDate.ts` — both unreferenced; `noUnusedLocals` doesn't catch unused *exports*, so they slipped through). One stale comment fixed. `README.md` refreshed to match current functionality. See "Proposed Improvements" for the follow-ups.
 
@@ -639,30 +641,36 @@ adding it. The point of the list is as much about what to **skip** as what to bu
 
 ### Recommended (high value, low bloat)
 
-1. **Group standings table.** A tournament tracker that shows group letters but no
+1. **Group standings table.** ✅ Built. A tournament tracker that shows group letters but no
    table is a real gap during the group stage. Computable entirely from data the app
    already has — no new API — by tallying finished-match results (points, GD, GF)
    per group. Surface it on the group/All view (e.g. a "Groups" tab or a section
    above the group fixtures). Respects "no database, free APIs only." Medium effort,
-   one focused test on the points/tiebreak logic. _(Was P2, not built.)_
+   one focused test on the points/tiebreak logic. _(Was P2. Shipped as `standings.ts`
+   + `StandingsView` + a "Groups" tab; 7 tests on the points/tiebreak logic.)_
 
-2. **Follow a team.** The stadium selector lets a fan follow a *city*, but a team
+2. **Follow a team.** ✅ Built. The stadium selector lets a fan follow a *city*, but a team
    plays across three group venues and then unknown knockout venues, so there's no
    way to follow *Canada* or *Argentina* across the tournament. Add a team picker
    (persisted like the stadium choice) that filters to a team's matches across all
    stadiums, resolving through knockout slots as teams advance. Low effort, high
-   value for the core "what's next for my team" question. _(Was P2, not built.)_
+   value for the core "what's next for my team" question. _(Was P2. Shipped as
+   `TeamSelect` + `filterByTeam`/`teamsInMatches`, persisted to localStorage,
+   matching on the canonical team key so it follows a team through the bracket.)_
 
-3. **Offline last-good response.** The PWA installs but has no offline data. Persist
+3. **Offline last-good response.** ✅ Built. The PWA installs but has no offline data. Persist
    the last successful function payload to `localStorage` and hydrate from it on load
    (before the network resolves), with the existing "last checked" line making the
    staleness honest. Completes the half-built offline story. Low effort. _(Was P2,
-   "offline-friendly last successful response.")_
+   "offline-friendly last successful response." Shipped as `loadLastResponse`/
+   `saveLastResponse` + lazy state hydration in `app.tsx`; 5 tests.)_
 
-4. **Dead-export guard in CI.** The two pruned exports passed `tsc`/`noUnusedLocals`
+4. **Dead-export guard in CI.** ✅ Built. The two pruned exports passed `tsc`/`noUnusedLocals`
    because those only flag unused *locals*, not unused *exports*. Add a `knip` (or
    `ts-prune`) check to `npm run` and CI so speculative code can't accumulate
    silently. Keeps the codebase honest to its own YAGNI principle. Very low effort.
+   _(Shipped as `npm run knip` + `knip.json`, wired into a new
+   `.github/workflows/ci.yml`; the first run pruned eight dead exports.)_
 
 ### Deliberately deferred (YAGNI — skip for now)
 

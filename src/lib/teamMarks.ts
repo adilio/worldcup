@@ -54,7 +54,7 @@ const TEAM_FLAGS: Record<string, string> = {
   Uzbekistan: "🇺🇿",
 };
 
-export function teamInitials(team: string): string {
+function teamInitials(team: string): string {
   return team
     .split(/\s+/)
     .filter(Boolean)

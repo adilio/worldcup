@@ -111,12 +111,14 @@ button {
   margin: 0 0 14px;
 }
 
-.stadium-select {
+.stadium-select,
+.team-select {
   display: grid;
   gap: 7px;
 }
 
-.stadium-select__label {
+.stadium-select__label,
+.team-select__label {
   color: var(--text-muted);
   font-size: 0.76rem;
   font-weight: 700;
@@ -124,7 +126,8 @@ button {
   text-transform: uppercase;
 }
 
-.stadium-select__input {
+.stadium-select__input,
+.team-select__input {
   width: 100%;
   min-height: 44px;
   appearance: none;
@@ -149,6 +152,7 @@ button {
 }
 
 .stadium-select__input:focus-visible,
+.team-select__input:focus-visible,
 .filters__tab:focus-visible,
 .card-btn:focus-visible {
   outline: 2px solid var(--accent);
@@ -785,13 +789,109 @@ button {
   box-shadow: none;
 }
 
+/* --- Group standings --- */
+.standings-view {
+  display: grid;
+  gap: 18px;
+  padding: 14px;
+}
+
+.standings-group {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.standings-group__title {
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--surface-2);
+  font-size: 0.88rem;
+  font-weight: 750;
+}
+
+.standings-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.standings-table th,
+.standings-table td {
+  padding: 8px 4px;
+  text-align: center;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.standings-table thead th {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.standings-table__pos {
+  width: 22px;
+  color: var(--text-muted);
+}
+
+.standings-table__team {
+  text-align: left;
+  padding-left: 8px;
+}
+
+.standings-row + .standings-row td {
+  border-top: 1px solid var(--border-soft);
+}
+
+.standings-table__team {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.standings-table__name {
+  color: var(--text);
+  font-weight: 650;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.standings-table__pts {
+  color: var(--text);
+  font-weight: 800;
+}
+
+.standings-row--qualify .standings-table__pos {
+  box-shadow: inset 3px 0 0 var(--live);
+}
+
+.standings-row--playoff .standings-table__pos {
+  box-shadow: inset 3px 0 0 var(--warning);
+}
+
+.standings-view .team-mark {
+  width: 26px;
+  height: 20px;
+  font-size: 0.55rem;
+}
+
+.standings-view .team-mark--flag {
+  width: 30px;
+  height: 22px;
+  font-size: 1.25rem;
+}
+
 @media (min-width: 640px) {
   .app {
     padding: 28px 20px 54px;
   }
 
   .app__controls {
-    grid-template-columns: minmax(280px, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
   }
 
   .app-title {

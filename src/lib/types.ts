@@ -7,7 +7,7 @@ export type MatchStatus =
   | "cancelled"
   | "unknown";
 
-export type Country = "Canada" | "United States" | "Mexico";
+type Country = "Canada" | "United States" | "Mexico";
 
 export type Stadium = {
   id: string;

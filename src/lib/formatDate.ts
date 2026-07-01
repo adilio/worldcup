@@ -12,7 +12,7 @@ export function formatTime(iso: string, timeZone?: string): string {
 }
 
 /** Short timezone abbreviation, e.g. "PDT", for a given instant + zone. */
-export function timezoneAbbr(iso: string, timeZone: string): string {
+function timezoneAbbr(iso: string, timeZone: string): string {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone,
     timeZoneName: "short",

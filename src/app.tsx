@@ -6,26 +6,37 @@ import {
   savePreferredStadium,
   loadNoSpoiler,
   saveNoSpoiler,
+  loadPreferredTeam,
+  savePreferredTeam,
+  loadLastResponse,
+  saveLastResponse,
 } from "./lib/storage.ts";
 import {
   filterByStadium,
+  filterByTeam,
+  teamsInMatches,
   applyTabFilter,
   selectHeroMatch,
   todaysMatches,
+  ALL_TEAMS_ID,
   type FilterTab,
 } from "./lib/matches.ts";
 import { isLive } from "./lib/matchStatus.ts";
 import { ALL_STADIUMS_ID, getStadium } from "./lib/stadiums.ts";
 import { AppHeader } from "./components/AppHeader.tsx";
 import { StadiumSelect } from "./components/StadiumSelect.tsx";
+import { TeamSelect } from "./components/TeamSelect.tsx";
 import { MatchCard } from "./components/MatchCard.tsx";
 import { MatchList } from "./components/MatchList.tsx";
 import { BracketView } from "./components/BracketView.tsx";
+import { StandingsView } from "./components/StandingsView.tsx";
+import { computeGroupStandings } from "./lib/standings.ts";
 import { EmptyState } from "./components/EmptyState.tsx";
 import { DataStatus } from "./components/DataStatus.tsx";
 
 const TABS: { id: FilterTab; label: string }[] = [
   { id: "today", label: "Today" },
+  { id: "groups", label: "Groups" },
   { id: "bracket", label: "Bracket" },
   { id: "upcoming", label: "Upcoming" },
   { id: "results", label: "Results" },
@@ -51,10 +62,13 @@ function pollInterval(stadiumMatches: Match[]): number {
 
 export function App() {
   const [stadiumId, setStadiumId] = useState<string>(loadPreferredStadium());
+  const [teamId, setTeamId] = useState<string>(loadPreferredTeam());
   const [tab, setTab] = useState<FilterTab>(tabFromUrl());
   const [noSpoiler, setNoSpoiler] = useState<boolean>(loadNoSpoiler());
 
-  const [data, setData] = useState<MatchesResponse | null>(null);
+  // Hydrate from the last cached response so the app renders instantly (and works
+  // offline) while the network request is still in flight.
+  const [data, setData] = useState<MatchesResponse | null>(() => loadLastResponse());
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,6 +82,7 @@ export function App() {
     try {
       const res = await fetchMatches(ac.signal);
       setData(res);
+      saveLastResponse(res);
       setError(null);
     } catch (err) {
       if ((err as Error).name !== "AbortError") {
@@ -85,9 +100,12 @@ export function App() {
   }, []);
 
   const allMatches = data?.matches ?? [];
+  const teams = useMemo(() => teamsInMatches(allMatches), [allMatches]);
+  // The working set is scoped by both the stadium and the followed team, so the
+  // hero, list, and polling cadence all reflect what the user is watching.
   const stadiumMatches = useMemo(
-    () => filterByStadium(allMatches, stadiumId),
-    [allMatches, stadiumId],
+    () => filterByTeam(filterByStadium(allMatches, stadiumId), teamId),
+    [allMatches, stadiumId, teamId],
   );
 
   // Adaptive polling: cadence depends on whether the selected stadium has a
@@ -123,6 +141,11 @@ export function App() {
     savePreferredStadium(id);
   }
 
+  function changeTeam(team: string) {
+    setTeamId(team);
+    savePreferredTeam(team);
+  }
+
   function toggleSpoiler() {
     const next = !noSpoiler;
     setNoSpoiler(next);
@@ -134,6 +157,7 @@ export function App() {
     [stadiumMatches, tab],
   );
   const bracketMatches = useMemo(() => applyTabFilter(allMatches, "bracket"), [allMatches]);
+  const standings = useMemo(() => computeGroupStandings(allMatches), [allMatches]);
   const liveMatches = useMemo(
     () => stadiumMatches.filter((m) => isLive(m.status)),
     [stadiumMatches],
@@ -143,6 +167,10 @@ export function App() {
   const stadiumName =
     stadiumId === ALL_STADIUMS_ID ? "All stadiums" : getStadium(stadiumId)?.name ?? "—";
   const isAllStadiums = stadiumId === ALL_STADIUMS_ID;
+  const followingTeam = teamId !== ALL_TEAMS_ID;
+  // What the hero and empty states are scoped to: a followed team takes priority
+  // over the stadium; "All stadiums" with no team has no explicit scope label.
+  const scopeLabel = followingTeam ? teamId : isAllStadiums ? null : stadiumName;
 
   return (
     <div class="app">
@@ -150,6 +178,7 @@ export function App() {
 
       <div class="app__controls">
         <StadiumSelect value={stadiumId} onChange={changeStadium} />
+        <TeamSelect value={teamId} teams={teams} onChange={changeTeam} />
         <label class="spoiler-toggle">
           <input type="checkbox" checked={noSpoiler} onChange={toggleSpoiler} />
           <span>No-spoiler</span>
@@ -172,12 +201,12 @@ export function App() {
             <section class="hero">
               <h2 class="hero__heading">
                 {liveMatches.length > 0
-                  ? isAllStadiums
-                    ? "Live now"
-                    : `Live at ${stadiumName}`
-                  : isAllStadiums
-                    ? "Next up"
-                    : `Next at ${stadiumName}`}
+                  ? scopeLabel
+                    ? `Live · ${scopeLabel}`
+                    : "Live now"
+                  : scopeLabel
+                    ? `Next · ${scopeLabel}`
+                    : "Next up"}
               </h2>
               <div class="hero__cards">
                 {(liveMatches.length > 0 ? liveMatches : [hero]).map((m) => (
@@ -187,8 +216,12 @@ export function App() {
             </section>
           ) : (
             <EmptyState
-              title={`No matches at ${stadiumName}`}
-              message="Try selecting a different stadium."
+              title={scopeLabel ? `No matches for ${scopeLabel}` : "No matches"}
+              message={
+                followingTeam
+                  ? "This team has no matches in the current view. Try All stadiums."
+                  : "Try selecting a different stadium."
+              }
             />
           )}
 
@@ -208,6 +241,8 @@ export function App() {
 
           {tab === "bracket" ? (
             <BracketView matches={bracketMatches} noSpoiler={noSpoiler} />
+          ) : tab === "groups" ? (
+            <StandingsView standings={standings} noSpoiler={noSpoiler} />
           ) : visible.length > 0 ? (
             <MatchList matches={visible} noSpoiler={noSpoiler} liveFirst={tab === "today"} dir={tab === "upcoming" ? "asc" : "desc"} />
           ) : (

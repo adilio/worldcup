@@ -11,7 +11,8 @@
     "seed": "node scripts/seed.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc -b --noEmit"
+    "typecheck": "tsc -b --noEmit",
+    "knip": "knip --include exports,types,nsExports,nsTypes"
   },
   "dependencies": {
     "preact": "^10.25.4"
@@ -19,6 +20,7 @@
   "devDependencies": {
     "@preact/preset-vite": "^2.10.1",
     "@types/node": "^26.0.1",
+    "knip": "^6.23.0",
     "typescript": "^5.7.3",
     "vite": "^6.0.7",
     "vitest": "^2.1.8"

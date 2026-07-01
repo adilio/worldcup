@@ -56,7 +56,11 @@ const TEAM_ALIASES: ReadonlyMap<string, string> = new Map([
   ["united states of america", "usa"],
 ]);
 
-function normalizedTeamKey(name: string): string {
+/**
+ * Canonical key for a team name: lowercased, de-accented, alias-folded. Lets the
+ * app treat provider spelling variants ("Congo DR" vs "DR Congo") as one team.
+ */
+export function normalizedTeamKey(name: string): string {
   const base = name
     .trim()
     .toLowerCase()

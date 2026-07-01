@@ -1,0 +1,12 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "netlify/functions/matches.mts",
+    "tests/**/*.test.ts"
+  ],
+  "project": [
+    "src/**/*.{ts,tsx}",
+    "netlify/**/*.mts",
+    "scripts/**/*.mjs"
+  ]
+}

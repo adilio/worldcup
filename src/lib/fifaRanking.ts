@@ -7,8 +7,6 @@
  * qualifiers, keyed by the same team-name strings used throughout the app
  * (see teamMarks.ts for the equivalent flag map).
  */
-export const FIFA_RANKING_AS_OF = "2026-06-11";
-
 const FIFA_RANKING: Record<string, number> = {
   Argentina: 1,
   Spain: 2,

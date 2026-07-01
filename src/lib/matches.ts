@@ -1,18 +1,60 @@
 import type { Match } from "./types.ts";
 import { ALL_STADIUMS_ID } from "../data/stadiums.ts";
 import { isLive, isFinished, isUpcoming } from "./matchStatus.ts";
+import { isPlaceholderTeam, normalizedTeamKey } from "./mergeMatches.ts";
 
-export type FilterTab = "all" | "today" | "bracket" | "upcoming" | "results";
+export type FilterTab = "all" | "today" | "groups" | "bracket" | "upcoming" | "results";
+
+/** Sentinel value for the "All teams" option in the team picker. */
+export const ALL_TEAMS_ID = "all";
 
 export function filterByStadium(matches: Match[], stadiumId: string): Match[] {
   if (stadiumId === ALL_STADIUMS_ID) return matches;
   return matches.filter((m) => m.stadiumId === stadiumId);
 }
 
+/**
+ * Real team names appearing in the group stage, de-duplicated across provider
+ * spelling variants and sorted for the picker. Group-stage names are always
+ * resolved (unlike knockout slots), so this is the reliable roster source.
+ */
+export function teamsInMatches(matches: Match[]): string[] {
+  const seen = new Set<string>();
+  const teams: string[] = [];
+  for (const m of matches) {
+    if (m.stage !== "group") continue;
+    for (const team of [m.homeTeam, m.awayTeam]) {
+      if (isPlaceholderTeam(team)) continue;
+      const key = normalizedTeamKey(team);
+      if (!seen.has(key)) {
+        seen.add(key);
+        teams.push(team);
+      }
+    }
+  }
+  return teams.sort((a, b) => a.localeCompare(b));
+}
+
+/**
+ * Filter to one team's matches across every stadium. Compares on the canonical
+ * key so a knockout match whose team name resolved to a provider variant still
+ * matches — this is what lets a fan follow a team through the bracket as slots
+ * resolve.
+ */
+export function filterByTeam(matches: Match[], team: string): Match[] {
+  if (team === ALL_TEAMS_ID) return matches;
+  const key = normalizedTeamKey(team);
+  return matches.filter(
+    (m) => normalizedTeamKey(m.homeTeam) === key || normalizedTeamKey(m.awayTeam) === key,
+  );
+}
+
 export function applyTabFilter(matches: Match[], tab: FilterTab): Match[] {
   switch (tab) {
     case "today":
       return todaysMatches(matches);
+    case "groups":
+      return matches.filter((m) => m.stage === "group");
     case "bracket":
       return matches.filter((m) => m.stage !== "group");
     case "upcoming":

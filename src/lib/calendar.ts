@@ -13,7 +13,7 @@ function escapeText(s: string): string {
 }
 
 /** Build a single-event .ics file body for a match. */
-export function buildIcs(m: Match): string {
+function buildIcs(m: Match): string {
   const start = new Date(m.kickoffUtc);
   const end = new Date(start.getTime() + MATCH_DURATION_MIN * 60 * 1000);
   const title = `${m.homeTeam} vs ${m.awayTeam}`;

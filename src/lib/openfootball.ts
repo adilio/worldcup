@@ -11,7 +11,7 @@ import { normalizeVenue, getStadium } from "./stadiums.ts";
  * the venue+date+slot backstop — which is correct.
  */
 
-export type OfGoal = { name?: string; minute?: string | number };
+type OfGoal = { name?: string; minute?: string | number };
 export type OfMatch = {
   round?: string;
   num?: number;
@@ -27,7 +27,7 @@ export type OfMatch = {
 };
 export type OfFile = { matches?: OfMatch[] };
 
-export function toStage(round: string | undefined): Stage {
+function toStage(round: string | undefined): Stage {
   if (!round) return "group";
   if (round.startsWith("Matchday")) return "group";
   switch (round) {
@@ -48,13 +48,13 @@ export function toStage(round: string | undefined): Stage {
   }
 }
 
-export function toGroup(group: string | undefined): string | undefined {
+function toGroup(group: string | undefined): string | undefined {
   if (!group) return undefined;
   return group.replace(/^Group\s+/i, "").trim() || undefined;
 }
 
 /** "13:00 UTC-6" + date → ISO UTC instant. */
-export function toKickoffUtc(date: string, time: string): string {
+function toKickoffUtc(date: string, time: string): string {
   const m = /^(\d{1,2}):(\d{2})\s*UTC([+-]\d{1,2})(?::(\d{2}))?$/.exec(time.trim());
   if (!m) throw new Error(`Cannot parse time: "${time}"`);
   const [, hh, mm, offHrs, offMin = "00"] = m;
@@ -66,7 +66,7 @@ export function toKickoffUtc(date: string, time: string): string {
   return d.toISOString();
 }
 
-export function scorerNames(goals: OfGoal[] | undefined): string[] {
+function scorerNames(goals: OfGoal[] | undefined): string[] {
   if (!Array.isArray(goals)) return [];
   return goals
     .map((g) => (g?.minute ? `${g.name} ${g.minute}'` : g?.name))
