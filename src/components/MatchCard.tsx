@@ -11,6 +11,7 @@ import { dualTime, dateHeading } from "../lib/formatDate.ts";
 import { downloadIcs } from "../lib/calendar.ts";
 import { shareMatch, canShare } from "../lib/share.ts";
 import { teamMark } from "../lib/teamMarks.ts";
+import { fifaRank } from "../lib/fifaRanking.ts";
 
 type Props = {
   match: Match;
@@ -24,6 +25,8 @@ export function MatchCard({ match, noSpoiler, hero = false }: Props) {
   const times = dualTime(match.kickoffUtc, match.stadiumId);
   const homeMark = teamMark(match.homeTeam);
   const awayMark = teamMark(match.awayTeam);
+  const homeRank = fifaRank(match.homeTeam);
+  const awayRank = fifaRank(match.awayTeam);
 
   // The score/result is hidden in no-spoiler mode; otherwise show score when we
   // have one, falling back to the kickoff time for upcoming matches.
@@ -49,8 +52,11 @@ export function MatchCard({ match, noSpoiler, hero = false }: Props) {
 
       <div class="match-card__scoreboard">
         <div class="match-card__side">
-          <span class={`team-mark${homeMark.flag ? " team-mark--flag" : ""}`}>
-            {homeMark.text}
+          <span class="match-card__identity">
+            <span class={`team-mark${homeMark.flag ? " team-mark--flag" : ""}`}>
+              {homeMark.text}
+            </span>
+            {homeRank != null && <span class="match-card__rank">#{homeRank}</span>}
           </span>
           <span class="match-card__team">{match.homeTeam}</span>
         </div>
@@ -65,8 +71,11 @@ export function MatchCard({ match, noSpoiler, hero = false }: Props) {
 
         <div class="match-card__side match-card__side--away">
           <span class="match-card__team">{match.awayTeam}</span>
-          <span class={`team-mark${awayMark.flag ? " team-mark--flag" : ""}`}>
-            {awayMark.text}
+          <span class="match-card__identity">
+            <span class={`team-mark${awayMark.flag ? " team-mark--flag" : ""}`}>
+              {awayMark.text}
+            </span>
+            {awayRank != null && <span class="match-card__rank">#{awayRank}</span>}
           </span>
         </div>
       </div>

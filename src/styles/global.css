@@ -345,8 +345,22 @@ button {
   text-align: left;
 }
 
-.match-card__side--away .team-mark {
+.match-card__side--away .match-card__identity {
   order: -1;
+}
+
+.match-card__identity {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 4px;
+  align-items: center;
+}
+
+.match-card__rank {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .team-mark {
@@ -693,11 +707,18 @@ button {
 
 .bracket-card__team {
   display: grid;
-  grid-template-columns: 30px minmax(0, 1fr) auto;
+  grid-template-columns: 30px auto minmax(0, 1fr) auto;
   gap: 8px;
   align-items: center;
   margin-top: 9px;
   color: var(--text-dim);
+}
+
+.bracket-card__rank {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .bracket-card__team--winner {
@@ -791,7 +812,7 @@ button {
     text-align: right;
   }
 
-  .match-card__side--away .team-mark {
+  .match-card__side--away .match-card__identity {
     order: initial;
   }
 

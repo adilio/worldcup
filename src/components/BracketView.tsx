@@ -3,6 +3,7 @@ import { formatTime, formatDateShort } from "../lib/formatDate.ts";
 import { hasPens, hasScore, isLive, statusLabel } from "../lib/matchStatus.ts";
 import { sortByKickoff } from "../lib/matches.ts";
 import { teamMark } from "../lib/teamMarks.ts";
+import { fifaRank } from "../lib/fifaRanking.ts";
 import { isPlaceholderTeam } from "../lib/mergeMatches.ts";
 
 type Props = {
@@ -86,11 +87,13 @@ function TeamRow({
   winner: boolean;
 }) {
   const mark = teamMark(team);
+  const rank = fifaRank(team);
   return (
     <div class={`bracket-card__team${winner ? " bracket-card__team--winner" : ""}`}>
       <span class={`bracket-card__mark${mark.flag ? " bracket-card__mark--flag" : ""}`}>
         {mark.text}
       </span>
+      <span class="bracket-card__rank">{rank != null ? `#${rank}` : ""}</span>
       <span class="bracket-card__name">{team}</span>
       <span class="bracket-card__score">{score}</span>
     </div>
